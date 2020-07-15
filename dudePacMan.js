@@ -22,6 +22,8 @@ Object.freeze(DirectionEnum)
 var playerImage = new Image();
 playerImage.src = "images/player.png"
 
+var enemyImage = new Image();
+enemyImage.src = "images/enemy.png";
 
 window.onload = init;
 
@@ -79,9 +81,11 @@ class Game {
 
     constructor(){
         this.entities = [];
-        this.player = new Player(100,100, 3);
-
+        this.player = new Player(100,100, 3, playerImage);
         this.entities.push(this.player);
+
+        this.enemey1 = new Enemy(32, 32, 3, enemyImage);
+        this.entities.push(this.enemey1);
     }
 
     update() {
@@ -120,8 +124,8 @@ class Game {
 }
 
 class Sprite {
-    constructor(x, y, speed){
-        this.currentGraphic = playerImage;
+    constructor(x, y, speed, image){
+        this.currentGraphic = image;
         this.direction = DirectionEnum.RIGHT;
         this.alive = true;
         this.x = x;
@@ -130,7 +134,6 @@ class Sprite {
     }
 
     draw() {
-        console.log("Draw Entity");
         context.drawImage(this.currentGraphic, this.x, this.y);
     }
 
@@ -160,3 +163,20 @@ class Sprite {
 class Player extends Sprite {
 }
 
+class Enemy extends Sprite {
+    update() {
+        let player = game.player;
+
+        if(player.x > this.x){
+            this.direction = DirectionEnum.RIGHT;
+        } else if (player.x < this.x){
+            this.direction = DirectionEnum.LEFT;
+        } else if(player.y > this.y){
+            this.direction = DirectionEnum.DOWN;
+        } else if (player.y < this.y){
+            this.direction = DirectionEnum.UP;
+        }
+
+        Sprite.prototype.update.call(this);
+    }
+}
