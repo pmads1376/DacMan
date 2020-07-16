@@ -22,18 +22,6 @@ const DirectionEnum = {
 }
 Object.freeze(DirectionEnum)
 
-var playerImage = new Image();
-playerImage.src = "images/player.png";
-
-var tileSheet = new Image();
-tileSheet.src = "images/tilesheet.png"
-
-var enemyImage = new Image();
-enemyImage.src = "images/ghost.png"
-
-var pickupImage = new Image();
-pickupImage.src = "images/pickup.png";
-
 window.onload = init;
 
 function init() {
@@ -49,7 +37,7 @@ function init() {
 }
 
 function mainLoop() {
-    if (!game.isPaused) {
+    if (!game.isPaused && !game.isGameFinished()) {
         game.update();
         game.draw();
     }
@@ -88,7 +76,7 @@ function keyUpHandler(event) {
 }
 
 function startNewGame() {
-    game = new Game();
+    game = new Game(1);
 }
 
 function showBoard() {
@@ -122,33 +110,52 @@ function toggleGamePause() {
 }
 
 class Game {
-    constructor(){
+    constructor(levelNumber){
         this.score = 0;
         this.entities = [];
         this.enemies = [];
-        this.player = new Player(32,32, 2, playerImage, DirectionEnum.DOWN);
-        this.map = new Map(tileSheet, level_one);
+        this.levelNumber = levelNumber;
+        this.level = levels[levelNumber];
+
+        this.player = new Player(this.level.startingCoords[0] * spriteSize, this.level.startingCoords[0] *spriteSize, 2, playerImage, DirectionEnum.DOWN);
+        this.map = new Map(tileSheet, this.level.map);
         var ghost = new Enemy(128, 32, 2, enemyImage, DirectionEnum.RIGHT);
 
+        this.pickups = [];
         this.initializePickups();
+        this.pickupsRemaining = this.pickups.length;
 
         this.entities.push(this.player);
         this.enemies.push(ghost);
     }
 
+    isGameFinished() {
+        return this.pickupsRemaining == 0;
+    }
+
     initializePickups(){
-        this.pickups = [];
+        
         var x;
         var y;
         for (y = 0; y < this.map.levelData.length; y++){
             for (x = 0; x < this.map.levelData[y].length; x++){
+                if(y == this.level.startingCoords[1] && x == this.level.startingCoords[0]){
+                    continue;
+                }
+
                 if(this.map.levelData[y][x] === 0){
                     var pickUp = new Pickup(x * spriteSize, y * spriteSize);
                     this.pickups.push(pickUp);
-                    this.entities.push(pickUp);
                 }
             }
         }
+
+        var randomPickup = Math.floor(Math.random() * this.pickups.length);
+        var oldPickUp = this.pickups[randomPickup];
+        var special = new Special(oldPickUp.x, oldPickUp.y, this);
+        this.pickups.splice(randomPickup, 1, special);
+        console.log(this.pickups)
+        this.entities = this.entities.concat(this.pickups);
     }
 
     update() {
@@ -253,7 +260,7 @@ class Sprite {
         this.y = y;
     }
 
-    update() {}
+    update(map) {}
 
     draw() {
         if(this.alive)
@@ -264,12 +271,26 @@ class Sprite {
 }
 
 class Pickup extends Sprite {
-    constructor(x, y){
-        super(x, y, pickupImage)
+    constructor(x, y, currentGraphic){
+        super(x, y, currentGraphic || pickupImage)
     }
 
     getScore() {
         return 10;
+    }
+}
+
+class Special extends Pickup {
+    constructor(x, y, game){
+        var image = new Image();
+        image.src = game.level.specialImage;
+        
+        super(x, y, image);
+        this.game = game;
+    }
+
+    getScore(){
+        return this.game.levelNumber * 100;
     }
 }
 
