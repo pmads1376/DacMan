@@ -20,7 +20,7 @@ const DirectionEnum = {
 Object.freeze(DirectionEnum)
 
 var playerImage = new Image();
-playerImage.src = "images/player.png"
+playerImage.src = "images/player.png";
 
 
 window.onload = init;
@@ -28,18 +28,20 @@ window.onload = init;
 function init(){
     canvas = document.getElementById('dudePacMan');
     context = canvas.getContext('2d');
-    game = new Game();
 
     document.addEventListener('keydown', keyDownHandler, false);
     document.addEventListener('keyup', keyUpHandler, false);
 
     // Start the first frame request
+    startNewGame();
     window.requestAnimationFrame(mainLoop);
 }
 
 function mainLoop() {
-    game.update();
-    game.draw();
+    if(!game.isPaused){
+        game.update();
+        game.draw();
+    } 
 
     window.requestAnimationFrame(mainLoop);
 }
@@ -74,10 +76,46 @@ function keyUpHandler(event) {
     }
 }
 
+function startNewGame() {
+    game = new Game();
+}
+
+function showBoard() {
+    var sections = document.getElementsByTagName("section");
+    for(const section of sections){
+        section.style.display = "none";
+    };
+
+    document.getElementById("game-board-section").style.display = "block";
+}
+
+function showScore() {
+    if(!game.isPaused){
+        toggleGamePause();
+    }
+
+    var sections = document.getElementsByTagName("section");
+    for(const section of sections){
+        section.style.display = "none";
+    };
+
+    document.getElementById("score-section").style.display = "block";
+}
+
+function toggleGamePause() {
+    game.isPaused = !game.isPaused;
+
+    var playPauseBtn = document.getElementById("play-pause-toggle");
+    playPauseBtn.classList.toggle("pause");
+    playPauseBtn.classList.toggle("play");
+}
 
 class Game {
 
     constructor(){
+        this.score = 0;
+        this.isPaused = false;
+
         this.entities = [];
         this.player = new Player(100,100, 3);
 
@@ -92,8 +130,9 @@ class Game {
     }
     
     draw() {
-        this.drawBackGround()
-    
+        this.drawBackGround();
+        this.drawScoreBoard();
+
         this.entities.forEach(entity => {
             entity.draw();
         })
@@ -101,6 +140,10 @@ class Game {
     
     drawBackGround() {
         context.fillRect(0, 0, screenX, screenY)
+    }
+
+    drawScoreBoard() {
+        document.getElementById("score-board").innerHTML = this.score;
     }
 
     handleKeyInput() {
@@ -160,3 +203,6 @@ class Sprite {
 class Player extends Sprite {
 }
 
+class Pickup extends Sprite {
+    
+}
