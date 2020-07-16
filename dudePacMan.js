@@ -1,8 +1,8 @@
 const screenX = 768;
 const screenY = 512;
-const sprintSize = 32;
-const tileWidth = screenX / sprintSize;
-const tileHeight = screenY / sprintSize;
+const spriteSize = 32;
+const tileWidth = screenX / spriteSize;
+const tileHeight = screenY / spriteSize;
 
 let canvas;
 let context;
@@ -82,7 +82,7 @@ function keyUpHandler(event) {
 class Game {
     constructor(){
         this.entities = [];
-        this.player = new Player(100,100, 3);
+        this.player = new Player(32,32, 3);
         this.map = new Map(tileSheet, level_one);
 
         this.entities.push(this.player);
@@ -91,7 +91,7 @@ class Game {
     update() {
         this.handleKeyInput();
         this.entities.forEach(entity => {
-            entity.update();
+            entity.update(this.map);
         })
     }
     
@@ -137,7 +137,7 @@ class Map {
         this.width = levelData[0].length;
         this.height = levelData.length;
         this.tiles = [];
-        this.tileSize = sprintSize;
+        this.tileSize = spriteSize;
 
         var x;
         var y;
@@ -173,10 +173,13 @@ class Map {
 class Sprite {
     constructor(x, y, speed){
         this.currentGraphic = playerImage;
+        this.sprintSize = spriteSize
         this.direction = DirectionEnum.RIGHT;
         this.alive = true;
         this.x = x;
         this.y = y;
+        this.xvel = 0;
+        this.yvel = 0
         this.speed = speed;
     }
 
@@ -184,27 +187,67 @@ class Sprite {
         context.drawImage(this.currentGraphic, this.x, this.y);
     }
 
-    update() {
+    update(map) {
         switch(this.direction) {
             case DirectionEnum.UP:
-                this.y = this.y -= this.speed;
+                this.yvel = this.yvel -= this.speed;
                 break;
             case DirectionEnum.DOWN:
-                this.y = this.y += this.speed;
+                this.yvel = this.yvel += this.speed;
                 break;
             case DirectionEnum.LEFT:
-                this.x = this.x -= this.speed;
+                this.xvel = this.xvel -= this.speed;
                 break;
             case DirectionEnum.RIGHT:
-                this.x = this.x += this.speed;
+                this.xvel = this.xvel += this.speed;
                 break;
         }
 
+        this.collideLevel(map);
+
+        this.x += this.xvel;
+        this.y += this.yvel;
+
+        this.xvel = 0;
+        this.yvel = 0;
+
         if (this.x < 0) {this.x = 0}
         if (this.y < 0) {this.y = 0}
-        if (this.x + sprintSize > screenX) {this.x = screenX - sprintSize}
-        if (this.y + sprintSize > screenY) {this.y = screenY - sprintSize}
+        if (this.x + spriteSize > screenX) {this.x = screenX - spriteSize}
+        if (this.y + spriteSize > screenY) {this.y = screenY - spriteSize}
     }
+
+    collideLevel(map){
+        var x;
+        var y;
+        for (y = 0; y < map.levelData.length; y++){
+            for (x = 0; x < map.levelData[y].length; x++){
+                if (this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize)){
+                    if (this.xvel > 0) {
+                        this.xvel = 0;
+                    }
+                    if (this.xvel < 0) {
+                        this.xvel = 0;
+                    }
+                    if (this.yvel > 0) {
+                        this.yvel = 0;
+                    }
+                    if (this.yvel < 0) {
+                        this.yvel = 0;
+                    }
+                }
+
+            }
+        }
+    }
+
+    didCollideRect(sx,sy,sw,sh,tx,ty,tw,th){
+        if(sx > tx && sx < tx + tw && sy > ty && sy < ty + tw){
+            return true
+        }
+        return false;
+    }
+
 }
 
 class Player extends Sprite {
