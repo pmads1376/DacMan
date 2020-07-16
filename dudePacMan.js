@@ -7,6 +7,7 @@ const tileHeight = screenY / spriteSize;
 let canvas;
 let context;
 let game;
+let pickupSprites;
 
 var rightPressed = false;
 var leftPressed = false;
@@ -34,6 +35,8 @@ pickupSheet.src = "images/pickups.png";
 window.onload = init;
 
 function init() {
+    pickupSprites = new ImageSet(pickupSheet);
+
     canvas = document.getElementById('dudePacMan');
     context = canvas.getContext('2d');
 
@@ -123,7 +126,7 @@ class Game {
         this.entities = [];
         this.player = new Player(32, 32, 4);
         this.map = new Map(tileSheet, level_one);
-
+        
         this.entities.push(this.player);
         this.entities.push(new Pickup(64, 64))
         // this.initializePickups();
@@ -185,27 +188,26 @@ class Tile {
     }
 }
 
-class TileSet {
-    constructor(spriteSheet){
-        this.tileSize = spriteSize;
+class ImageSet {
+    constructor(spriteSheet, width, height){
+        this.spriteSize = spriteSize;
         this.spriteSheet = spriteSheet;
-        this.tiles = [];
+        this.images = [];
 
         var x;
         var y;
-        for (x = 0; x < this.spriteSheet.width / this.tileSize; x++) {
-            for (y = 0; y < this.spriteSheet.height / this.tileSize; y++) {
-                console.log('count')
-                this.tiles.push(new Tile(x, y))
+        for (x = 0; x < this.spriteSheet.width / this.spriteSize; x++) {
+            for (y = 0; y < this.spriteSheet.height / this.spriteSize; y++) {
+                this.images.push(new Tile(x, y))
             }
         }
     }
 
-    drawTile(x, y, tile) {
+    drawImage(x, y, image) {
         context.drawImage(
             this.spriteSheet,
-            tile.tilesetX * this.tileSize, tile.tilesetY * this.tileSize, this.tileSize, this.tileSize, // source coords
-            Math.floor(x * this.tileSize), Math.floor(y * this.tileSize), this.tileSize, this.tileSize // destination coords
+            image.tilesetX * this.spriteSize, image.tilesetY * this.spriteSize, this.spriteSize, this.spriteSize, // source coords
+            Math.floor(x * this.spriteSize), Math.floor(y * this.spriteSize), this.spriteSize, this.spriteSize // destination coords
         );
     }
 }
@@ -214,20 +216,19 @@ class TileSet {
 class Map {
     constructor(tileSheet, levelData) {
         this.levelData = levelData;
-        this.width = levelData[0].length;
-        this.height = levelData.length;
-        this.tileSet = new TileSet(tileSheet);
+    
+        this.imageSet = new ImageSet(tileSheet, levelData[0].length, levelData.length);
     }
 
     draw() {
 
-        context.drawImage(this.tileSet.spriteSheet, 200, 300);
+        context.drawImage(this.imageSet.spriteSheet, 200, 300);
 
         var x;
         var y;
         for (y = 0; y < this.levelData.length; y++) {
             for (x = 0; x < this.levelData[y].length; x++) {
-                this.tileSet.drawTile(x, y, this.tileSet.tiles[this.levelData[y][x]])
+                this.imageSet.drawImage(x, y, this.imageSet.images[this.levelData[y][x]])
             }
         }
     }
@@ -289,10 +290,10 @@ class Sprite {
     }
 
     canChangeDirection(map) {
-        if (this.x % map.tileSize == 0 && this.y % map.tileSize == 0) {
+        if (this.x % map.spriteSize == 0 && this.y % map.spriteSize == 0) {
 
-            var entityMapX = Math.floor(this.x / map.tileSize);
-            var entityMapY = Math.floor(this.y / map.tileSize);
+            var entityMapX = Math.floor(this.x / map.spriteSize);
+            var entityMapY = Math.floor(this.y / map.spriteSize);
 
             switch (this.currentDirection) {
                 case DirectionEnum.UP:
@@ -370,20 +371,20 @@ class Sprite {
         for (y = 0; y < map.levelData.length; y++) {
             for (x = 0; x < map.levelData[y].length; x++) {
                 if (map.levelData[y][x] != 0 &&
-                    this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize)) {
+                    this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.spriteSize, y * map.spriteSize, map.spriteSize, map.spriteSize)) {
                     this.currentDirection = DirectionEnum.STOPPED;
 
                     if (this.xvel > 0) {
-                        this.xvel = this.x - (x * map.tileSize - spriteSize);
+                        this.xvel = this.x - (x * map.spriteSize - spriteSize);
                     }
                     else if (this.xvel < 0) {
-                        this.xvel = this.x - (x * map.tileSize + map.tileSize);
+                        this.xvel = this.x - (x * map.spriteSize + map.spriteSize);
                     }
                     if (this.yvel > 0) {
-                        this.yvel = (y * map.tileSize - spriteSize) - this.y;
+                        this.yvel = (y * map.spriteSize - spriteSize) - this.y;
                     }
                     else if (this.yvel < 0) {
-                        this.yvel = (y * map.tileSize + map.tileSize) - this.y;
+                        this.yvel = (y * map.spriteSize + map.spriteSize) - this.y;
                     }
                 }
 
@@ -403,16 +404,14 @@ class Sprite {
 
 }
 
-const pickupTiles = new TileSet(pickupSheet);
 
 class Pickup extends Sprite {
     constructor(x, y){
         super(x, y);
-
-        this.currentGraphic = pickupTiles.spriteSheet;
     }
+
     draw(){
-        pickupTiles.drawTile(this.x, this.y, pickupTiles.tiles[0])
+        pickupSprites.drawImage(this.x, this.y, pickupSprites.images[0])
     }
 }
 
