@@ -154,7 +154,7 @@ class Game {
         var oldPickUp = this.pickups[randomPickup];
         var special = new Special(oldPickUp.x, oldPickUp.y, this);
         this.pickups.splice(randomPickup, 1, special);
-        console.log(this.pickups)
+        
         this.entities = this.entities.concat(this.pickups);
     }
 
