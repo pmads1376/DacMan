@@ -8,16 +8,17 @@
   <title>Dude Arcade</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="dudePacMan.js"></script>
+  <script src="levels.js"></script>
 </head>
 
 <body>
   <header>
-    <h1>Dude Arcade</h1>
   </header>
   <main>
     <div class="section-header">
-      <h2 onclick="showBoard();" class="active">Play</h2>
-      <h2 onclick="showScore();">Scores</h2>
+      <h4 onclick="showBoard();" class="active">Play</h4>
+      <h4 onclick="showScore();">Scores</h4>
     </div>
     <section id="game-board-section">
         <div id="board-header">
@@ -34,8 +35,7 @@
     <section id="score-section" style="display: none;">
     </section>
   </main>
-  <script src="dudePacMan.js"></script>
-  <script src="levels.js"></script>
+  
   <div id="score-list"></div>
 </body>
 </html>
