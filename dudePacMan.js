@@ -222,18 +222,19 @@ class Sprite {
         var y;
         for (y = 0; y < map.levelData.length; y++){
             for (x = 0; x < map.levelData[y].length; x++){
-                if (this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize)){
+                if (map.levelData[y][x] != 0 && 
+                    this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize)){
                     if (this.xvel > 0) {
-                        this.xvel = 0;
+                        this.xvel = this.x - (x * map.tileSize - spriteSize);
                     }
-                    if (this.xvel < 0) {
-                        this.xvel = 0;
+                    else if (this.xvel < 0) {
+                        this.xvel = this.x - (x * map.tileSize + map.tileSize);
                     }
                     if (this.yvel > 0) {
-                        this.yvel = 0;
+                        this.yvel = (y * map.tileSize - spriteSize) - this.y;
                     }
-                    if (this.yvel < 0) {
-                        this.yvel = 0;
+                    else if (this.yvel < 0) {
+                        this.yvel = (y * map.tileSize + map.tileSize) - this.y;
                     }
                 }
 
@@ -242,7 +243,10 @@ class Sprite {
     }
 
     didCollideRect(sx,sy,sw,sh,tx,ty,tw,th){
-        if(sx > tx && sx < tx + tw && sy > ty && sy < ty + tw){
+        if(tx < sx + sw && 
+            tx + tw > sx && 
+            ty < sy + sh && 
+            ty + th > sy ){
             return true
         }
         return false;
