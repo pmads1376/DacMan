@@ -432,7 +432,6 @@ class Actor extends Sprite {
         }
         return false;
     }
-
 }
 
 class Player extends Actor {
