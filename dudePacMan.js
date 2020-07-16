@@ -327,7 +327,6 @@ class Player extends Actor {
     }
     
     collidePickup(map, x, y){
-        console.log(game.score)
         map.levelData[y][x] = TileEnum.EMPTY;
         game.score = game.score + 10;
     }
