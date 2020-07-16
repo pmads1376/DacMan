@@ -22,14 +22,6 @@ const DirectionEnum = {
 }
 Object.freeze(DirectionEnum)
 
-
-const TileEnum = {
-    "EMPTY": 0,
-    "WALL": 1,
-    "PICKUP": 2
-}
-Object.freeze(TileEnum);
-
 var playerImage = new Image();
 playerImage.src = "images/player.png";
 
@@ -124,9 +116,9 @@ function toggleGamePause() {
 }
 
 class Game {
-    constructor(){
+    constructor() {
         this.entities = [];
-        this.player = new Player(32,32, 4);
+        this.player = new Player(32, 32, 4);
         this.map = new Map(tileSheet, level_one);
 
         this.entities.push(this.player);
@@ -138,38 +130,38 @@ class Game {
             entity.update(this.map);
         })
     }
-    
+
     draw() {
         this.drawBackGround()
         this.map.draw();
-    
+
         this.entities.forEach(entity => {
             entity.draw();
         })
     }
-    
+
     drawBackGround() {
         context.fillRect(0, 0, screenX, screenY)
     }
 
     handleKeyInput() {
-        if(rightPressed) {
+        if (rightPressed) {
             this.player.nextDirection = DirectionEnum.RIGHT;
         }
-        else if(leftPressed) {
+        else if (leftPressed) {
             this.player.nextDirection = DirectionEnum.LEFT;
         }
-        else if(downPressed) {
+        else if (downPressed) {
             this.player.nextDirection = DirectionEnum.DOWN;
         }
-        else if(upPressed) {
+        else if (upPressed) {
             this.player.nextDirection = DirectionEnum.UP;
         }
     }
-    
+
 }
 class Tile {
-    constructor(tilesetX, tilesetY){
+    constructor(tilesetX, tilesetY) {
         this.tilesetX = tilesetX;
         this.tilesetY = tilesetY;
     }
@@ -186,37 +178,53 @@ class Map {
 
         var x;
         var y;
-        for (x = 0; x < this.tileSheet.width / this.tileSize; x++){
-            for (y = 0; y < this.tileSheet.height/ this.tileSize; y++){
-                this.tiles.push(new Tile(x,y))
+        for (x = 0; x < this.tileSheet.width / this.tileSize; x++) {
+            for (y = 0; y < this.tileSheet.height / this.tileSize; y++) {
+                this.tiles.push(new Tile(x, y))
             }
         }
     }
 
-    draw(){
+    draw() {
 
         context.drawImage(this.tileSheet, 200, 300);
 
         var x;
         var y;
-        for (y = 0; y < this.levelData.length; y++){
-            for (x = 0; x < this.levelData[y].length; x++){
-                this.drawTile(x, y, this.tiles[this.levelData[y][x]] )
+        for (y = 0; y < this.levelData.length; y++) {
+            for (x = 0; x < this.levelData[y].length; x++) {
+                this.drawTile(x, y, this.tiles[this.levelData[y][x]])
             }
         }
     }
 
-    drawTile(x, y, tile){ 
+    drawTile(x, y, tile) {
         context.drawImage(
-          this.tileSheet,
-          tile.tilesetX * this.tileSize, tile.tilesetY * this.tileSize, this.tileSize, this.tileSize, // source coords
-          Math.floor(x * this.tileSize), Math.floor(y * this.tileSize), this.tileSize, this.tileSize // destination coords
+            this.tileSheet,
+            tile.tilesetX * this.tileSize, tile.tilesetY * this.tileSize, this.tileSize, this.tileSize, // source coords
+            Math.floor(x * this.tileSize), Math.floor(y * this.tileSize), this.tileSize, this.tileSize // destination coords
         );
-      }
+    }
+}
+
+class Pickup {
+    constructor() {
+        this.x = x;
+        this.y = y;
+        this.value = 10;
+    }
+}
+
+class PowerUp extends Pickup {
+
+}
+
+class Special extends Pickup {
+    
 }
 
 class Sprite {
-    constructor(x, y, speed){
+    constructor(x, y, speed) {
         this.currentGraphic = playerImage;
         this.sprintSize = spriteSize
         this.currentDirection = DirectionEnum.DOWN;
@@ -235,13 +243,13 @@ class Sprite {
 
     update(map) {
 
-        if (this.canChangeDirection(map)){
+        if (this.canChangeDirection(map)) {
             this.currentDirection = this.nextDirection;
-        }else{
+        } else {
             this.nextDirection = this.currentDirection;
         }
 
-        switch(this.currentDirection) {
+        switch (this.currentDirection) {
             case DirectionEnum.UP:
                 this.yvel = this.yvel -= this.speed;
                 break;
@@ -264,19 +272,19 @@ class Sprite {
         this.xvel = 0;
         this.yvel = 0;
 
-        if (this.x < 0) {this.x = 0}
-        if (this.y < 0) {this.y = 0}
-        if (this.x + spriteSize > screenX) {this.x = screenX - spriteSize}
-        if (this.y + spriteSize > screenY) {this.y = screenY - spriteSize}
+        if (this.x < 0) { this.x = 0 }
+        if (this.y < 0) { this.y = 0 }
+        if (this.x + spriteSize > screenX) { this.x = screenX - spriteSize }
+        if (this.y + spriteSize > screenY) { this.y = screenY - spriteSize }
     }
 
-    canChangeDirection(map){
-        if (this.x % map.tileSize == 0 && this.y % map.tileSize == 0 ){
+    canChangeDirection(map) {
+        if (this.x % map.tileSize == 0 && this.y % map.tileSize == 0) {
 
             var entityMapX = Math.floor(this.x / map.tileSize);
             var entityMapY = Math.floor(this.y / map.tileSize);
 
-            switch(this.currentDirection) {
+            switch (this.currentDirection) {
                 case DirectionEnum.UP:
                     if (this.nextDirection == DirectionEnum.DOWN) {
                         return false;
@@ -312,51 +320,51 @@ class Sprite {
         return false;
     }
 
-    checkXAxisCanMove(map, entityMapX, entityMapY){
-        switch(this.nextDirection){
+    checkXAxisCanMove(map, entityMapX, entityMapY) {
+        switch (this.nextDirection) {
             case DirectionEnum.LEFT:
-                if (map.levelData[entityMapY][entityMapX-1] == 0){
+                if (map.levelData[entityMapY][entityMapX - 1] == 0) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             case DirectionEnum.RIGHT:
-                if (map.levelData[entityMapY][entityMapX+1] == 0){
+                if (map.levelData[entityMapY][entityMapX + 1] == 0) {
                     return true;
-                }else{
-                    return false;
-                }
-        }   
-    }
-
-    checkYAxisCanMove(map, entityMapX, entityMapY){
-        switch(this.nextDirection){
-            case DirectionEnum.UP:
-                if (map.levelData[entityMapY-1][entityMapX] == 0){
-                    return true;
-                }else{
-                    return false;
-                }
-            case DirectionEnum.DOWN:
-                if (map.levelData[entityMapY+1][entityMapX] == 0){
-                    return true;
-                }else{
+                } else {
                     return false;
                 }
         }
     }
 
-    
+    checkYAxisCanMove(map, entityMapX, entityMapY) {
+        switch (this.nextDirection) {
+            case DirectionEnum.UP:
+                if (map.levelData[entityMapY - 1][entityMapX] == 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            case DirectionEnum.DOWN:
+                if (map.levelData[entityMapY + 1][entityMapX] == 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+        }
+    }
 
-    collideLevel(map){
+
+
+    collideLevel(map) {
         var x;
         var y;
-        for (y = 0; y < map.levelData.length; y++){
-            for (x = 0; x < map.levelData[y].length; x++){
-                if (map.levelData[y][x] != 0 && 
-                    this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize)){
+        for (y = 0; y < map.levelData.length; y++) {
+            for (x = 0; x < map.levelData[y].length; x++) {
+                if (map.levelData[y][x] != 0 &&
+                    this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize)) {
                     this.currentDirection = DirectionEnum.STOPPED;
-                    
+
                     if (this.xvel > 0) {
                         this.xvel = this.x - (x * map.tileSize - spriteSize);
                     }
@@ -375,11 +383,11 @@ class Sprite {
         }
     }
 
-    didCollideRect(sx,sy,sw,sh,tx,ty,tw,th){
-        if(tx < sx + sw && 
-            tx + tw > sx && 
-            ty < sy + sh && 
-            ty + th > sy ){
+    didCollideRect(sx, sy, sw, sh, tx, ty, tw, th) {
+        if (tx < sx + sw &&
+            tx + tw > sx &&
+            ty < sy + sh &&
+            ty + th > sy) {
             return true
         }
         return false;
