@@ -15,11 +15,11 @@ var upPressed = false;
 var downPressed = false;
 
 const DirectionEnum = {
-    "UP": 1,
-    "DOWN": 2,
-    "LEFT": 3,
-    "RIGHT": 4,
-    "STOPPED": 5
+    "UP": 0,
+    "DOWN": 1,
+    "LEFT": 2,
+    "RIGHT": 3,
+    "STOPPED": 4
 }
 Object.freeze(DirectionEnum)
 
@@ -31,6 +31,9 @@ tileSheet.src = "images/tilesheet.png";
 
 var pickupSheet = new Image();
 pickupSheet.src = "images/pickups.png";
+
+var enemyImage = new Image();
+enemyImage.src = "images/ghost.png"
 
 window.onload = init;
 
@@ -123,15 +126,17 @@ function toggleGamePause() {
 
 class Game {
     constructor() {
-        this.entities = [];
-        this.player = new Player(32, 32, 4);
+        this.entities = [];       
+        this.enemies = [];
+        this.player = new Player(32,32, 2, playerImage, DirectionEnum.DOWN);
         this.map = new Map(tileSheet, level_one);
-        
-        this.entities.push(this.player);
+        var ghost = new Enemy(128, 32, 2, enemyImage, DirectionEnum.RIGHT);
         this.entities.push(new Pickup(64, 64))
-        // this.initializePickups();
-    }
 
+        this.entities.push(this.player);
+        this.enemies.push(ghost);
+
+}  
     initializePickups () {
         var x;
         var y;
@@ -149,6 +154,10 @@ class Game {
         this.handleKeyInput();
         this.entities.forEach(entity => {
             entity.update(this.map);
+        });
+
+        this.enemies.forEach(enemy => {
+            enemy.update(this.map, this.player);
         })
     }
 
@@ -158,7 +167,11 @@ class Game {
 
         this.entities.forEach(entity => {
             entity.draw();
-        })
+        });
+
+        this.enemies.forEach(enemy => {
+            enemy.draw(this.map);
+        });
     }
 
     drawBackGround() {
@@ -235,10 +248,10 @@ class Map {
 }
 
 class Sprite {
-    constructor(x, y, speed) {
-        this.currentGraphic = playerImage;
+    constructor(x, y, speed, currentGraphic, startDirection){
+        this.currentGraphic = currentGraphic;
         this.sprintSize = spriteSize
-        this.currentDirection = DirectionEnum.DOWN;
+        this.currentDirection = startDirection;
         this.nextDirection = this.currentDirection;
         this.alive = true;
         this.x = x;
@@ -416,4 +429,118 @@ class Pickup extends Sprite {
 }
 
 class Player extends Sprite {
+}
+
+class Enemy extends Sprite {
+
+    update(map, player){
+
+        if (this.currentDirection == DirectionEnum.STOPPED){
+            this.nextDirection = Math.random() * 3 + 1;
+        }
+        
+        var xDiff = this.x - player.x;
+        var yDiff = this.y - player.y;
+
+        if (Math.abs(xDiff) > Math.abs(yDiff)) {
+            if (xDiff > 0){
+                if (this.currentDirection == DirectionEnum.RIGHT){
+                    if (yDiff > 0){
+                        this.nextDirection = DirectionEnum.UP;
+                    }else{
+                        this.nextDirection = DirectionEnum.DOWN;
+                    }
+                }else{
+                    this.nextDirection = DirectionEnum.LEFT;
+                }
+            }else{
+                if (this.currentDirection == DirectionEnum.LEFT){
+                    if (yDiff > 0){
+                        this.nextDirection = DirectionEnum.UP;
+                    }else{
+                        this.nextDirection = DirectionEnum.DOWN;
+                    }
+                }else{
+                    this.nextDirection = DirectionEnum.RIGHT;
+                }
+            }
+        }else{
+            if (yDiff > 0){
+                if (this.currentDirection == DirectionEnum.DOWN){
+                    if (xDiff > 0){
+                        this.nextDirection = DirectionEnum.LEFT;
+                    }else{
+                        this.nextDirection = DirectionEnum.RIGHT;
+                    }
+                }else{
+                    this.nextDirection = DirectionEnum.UP;
+                }
+            }else{
+                if (this.currentDirection == DirectionEnum.UP){
+                    if (xDiff > 0){
+                        this.nextDirection = DirectionEnum.LEFT;
+                    }else{
+                        this.nextDirection = DirectionEnum.RIGHT;
+                    }
+                }else{
+                    this.nextDirection = DirectionEnum.DOWN;
+                }
+            }
+        }
+
+        if(!this.canMoveDirection(map, this.nextDirection)){
+            var notAttemtedDirections = [0,1,2,3];
+            var randomDirection = this.tryRandomDirection(notAttemtedDirections);
+            this.nextDirection = randomDirection;
+        }
+
+        super.update(map);
+    }
+
+    tryRandomDirection(notAttemtedDirections){
+
+        var randomIndex = Math.floor(Math.random() * notAttemtedDirections.length);
+        var randomDirection = notAttemtedDirections[randomIndex];
+        if (this.canMoveDirection){
+            return randomDirection
+        }else{
+            notAttemtedDirections.pop(randomIndex);
+            return this.tryRandomDirection(notAttemtedDirections)
+        }
+
+    }
+
+    canMoveDirection(map, direction){
+
+        var entityMapX = Math.floor(this.x / map.tileSize);
+        var entityMapY = Math.floor(this.y / map.tileSize);
+
+        switch(direction){
+            case DirectionEnum.LEFT:
+                if (map.levelData[entityMapY][entityMapX-1] == 0){
+                    return true;
+                }else{
+                    return false;
+                }
+            case DirectionEnum.RIGHT:
+                if (map.levelData[entityMapY][entityMapX+1] == 0){
+                    return true;
+                }else{
+                    return false;
+                }
+            case DirectionEnum.UP:
+                if (map.levelData[entityMapY-1][entityMapX] == 0){
+                    return true;
+                }else{
+                    return false;
+                }
+            case DirectionEnum.DOWN:
+                if (map.levelData[entityMapY+1][entityMapX] == 0){
+                    return true;
+                }else{
+                    return false;
+                }
+        }   
+    }
+
 }
