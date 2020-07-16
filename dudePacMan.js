@@ -21,6 +21,14 @@ const DirectionEnum = {
 }
 Object.freeze(DirectionEnum)
 
+
+const TileEnum = {
+    "EMPTY": 0,
+    "WALL": 1,
+    "PICKUP": 2
+}
+Object.freeze(TileEnum);
+
 var playerImage = new Image();
 playerImage.src = "images/player.png";
 
@@ -29,7 +37,7 @@ tileSheet.src = "images/tilesheet.png"
 
 window.onload = init;
 
-function init(){
+function init() {
     canvas = document.getElementById('dudePacMan');
     context = canvas.getContext('2d');
 
@@ -42,41 +50,41 @@ function init(){
 }
 
 function mainLoop() {
-    if(!game.isPaused){
+    if (!game.isPaused) {
         game.update();
         game.draw();
-    } 
+    }
 
     window.requestAnimationFrame(mainLoop);
 }
 
 function keyDownHandler(event) {
-    if(event.keyCode == 39) {
+    if (event.keyCode == 39) {
         rightPressed = true;
     }
-    else if(event.keyCode == 37) {
+    else if (event.keyCode == 37) {
         leftPressed = true;
     }
-    if(event.keyCode == 40) {
-    	downPressed = true;
+    if (event.keyCode == 40) {
+        downPressed = true;
     }
-    else if(event.keyCode == 38) {
-    	upPressed = true;
+    else if (event.keyCode == 38) {
+        upPressed = true;
     }
 }
 
 function keyUpHandler(event) {
-    if(event.keyCode == 39) {
+    if (event.keyCode == 39) {
         rightPressed = false;
     }
-    else if(event.keyCode == 37) {
+    else if (event.keyCode == 37) {
         leftPressed = false;
     }
-    if(event.keyCode == 40) {
-    	downPressed = false;
+    if (event.keyCode == 40) {
+        downPressed = false;
     }
-    else if(event.keyCode == 38) {
-    	upPressed = false;
+    else if (event.keyCode == 38) {
+        upPressed = false;
     }
 }
 
@@ -86,7 +94,7 @@ function startNewGame() {
 
 function showBoard() {
     var sections = document.getElementsByTagName("section");
-    for(const section of sections){
+    for (const section of sections) {
         section.style.display = "none";
     };
 
@@ -94,12 +102,12 @@ function showBoard() {
 }
 
 function showScore() {
-    if(!game.isPaused){
+    if (!game.isPaused) {
         toggleGamePause();
     }
 
     var sections = document.getElementsByTagName("section");
-    for(const section of sections){
+    for (const section of sections) {
         section.style.display = "none";
     };
 
@@ -115,12 +123,12 @@ function toggleGamePause() {
 }
 
 class Game {
-    constructor(){
+    constructor() {
         this.score = 0;
         this.isPaused = false;
 
         this.entities = [];
-        this.player = new Player(32,32, 3);
+        this.player = new Player(32, 32, 3);
         this.map = new Map(tileSheet, level_one);
 
         this.entities.push(this.player);
@@ -132,16 +140,17 @@ class Game {
             entity.update(this.map);
         })
     }
-    
+
     draw() {
         this.drawBackGround()
         this.map.draw();
-    
+        this.drawScoreBoard();
+
         this.entities.forEach(entity => {
             entity.draw();
         })
     }
-    
+
     drawBackGround() {
         context.fillRect(0, 0, screenX, screenY)
     }
@@ -151,22 +160,22 @@ class Game {
     }
 
     handleKeyInput() {
-        if(rightPressed) {
+        if (rightPressed) {
             this.player.direction = DirectionEnum.RIGHT;
         }
-        else if(leftPressed) {
+        else if (leftPressed) {
             this.player.direction = DirectionEnum.LEFT;
         }
-        else if(downPressed) {
+        else if (downPressed) {
             this.player.direction = DirectionEnum.DOWN;
         }
-        else if(upPressed) {
+        else if (upPressed) {
             this.player.direction = DirectionEnum.UP;
         }
     }
 }
 class Tile {
-    constructor(tilesetX, tilesetY){
+    constructor(tilesetX, tilesetY) {
         this.tilesetX = tilesetX;
         this.tilesetY = tilesetY;
     }
@@ -183,37 +192,37 @@ class Map {
 
         var x;
         var y;
-        for (x = 0; x < this.tileSheet.width / this.tileSize; x++){
-            for (y = 0; y < this.tileSheet.height/ this.tileSize; y++){
-                this.tiles.push(new Tile(x,y))
+        for (x = 0; x < this.tileSheet.width / this.tileSize; x++) {
+            for (y = 0; y < this.tileSheet.height / this.tileSize; y++) {
+                this.tiles.push(new Tile(x, y))
             }
         }
     }
 
-    draw(){
+    draw() {
 
         context.drawImage(this.tileSheet, 200, 300);
 
         var x;
         var y;
-        for (y = 0; y < this.levelData.length; y++){
-            for (x = 0; x < this.levelData[y].length; x++){
-                this.drawTile(x, y, this.tiles[this.levelData[y][x]] )
+        for (y = 0; y < this.levelData.length; y++) {
+            for (x = 0; x < this.levelData[y].length; x++) {
+                this.drawTile(x, y, this.tiles[this.levelData[y][x]])
             }
         }
     }
 
-    drawTile(x, y, tile){ 
+    drawTile(x, y, tile) {
         context.drawImage(
-          this.tileSheet,
-          tile.tilesetX * this.tileSize, tile.tilesetY * this.tileSize, this.tileSize, this.tileSize, // source coords
-          Math.floor(x * this.tileSize), Math.floor(y * this.tileSize), this.tileSize, this.tileSize // destination coords
+            this.tileSheet,
+            tile.tilesetX * this.tileSize, tile.tilesetY * this.tileSize, this.tileSize, this.tileSize, // source coords
+            Math.floor(x * this.tileSize), Math.floor(y * this.tileSize), this.tileSize, this.tileSize // destination coords
         );
-      }
+    }
 }
 
 class Sprite {
-    constructor(x, y, speed){
+    constructor(x, y, speed) {
         this.currentGraphic = playerImage;
         this.sprintSize = spriteSize
         this.direction = DirectionEnum.RIGHT;
@@ -230,7 +239,7 @@ class Sprite {
     }
 
     update(map) {
-        switch(this.direction) {
+        switch (this.direction) {
             case DirectionEnum.UP:
                 this.yvel = this.yvel -= this.speed;
                 break;
@@ -253,42 +262,54 @@ class Sprite {
         this.xvel = 0;
         this.yvel = 0;
 
-        if (this.x < 0) {this.x = 0}
-        if (this.y < 0) {this.y = 0}
-        if (this.x + spriteSize > screenX) {this.x = screenX - spriteSize}
-        if (this.y + spriteSize > screenY) {this.y = screenY - spriteSize}
+        if (this.x < 0) { this.x = 0 }
+        if (this.y < 0) { this.y = 0 }
+        if (this.x + spriteSize > screenX) { this.x = screenX - spriteSize }
+        if (this.y + spriteSize > screenY) { this.y = screenY - spriteSize }
     }
 
-    collideLevel(map){
+    collideLevel(map) {
         var x;
         var y;
-        for (y = 0; y < map.levelData.length; y++){
-            for (x = 0; x < map.levelData[y].length; x++){
-                if (map.levelData[y][x] != 0 && 
-                    this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize)){
-                    if (this.xvel > 0) {
-                        this.xvel = this.x - (x * map.tileSize - spriteSize);
-                    }
-                    else if (this.xvel < 0) {
-                        this.xvel = this.x - (x * map.tileSize + map.tileSize);
-                    }
-                    if (this.yvel > 0) {
-                        this.yvel = (y * map.tileSize - spriteSize) - this.y;
-                    }
-                    else if (this.yvel < 0) {
-                        this.yvel = (y * map.tileSize + map.tileSize) - this.y;
+        for (y = 0; y < map.levelData.length; y++) {
+            for (x = 0; x < map.levelData[y].length; x++) {
+                let mapTile = map.levelData[y][x];
+
+                if (mapTile != TileEnum.EMPTY)
+                    var isCollided = this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize);
+
+                if (isCollided) {
+                    switch (mapTile) {
+                        case TileEnum.WALL:
+                            if (this.xvel > 0) {
+                                this.xvel = this.x - (x * map.tileSize - spriteSize);
+                            }
+                            else if (this.xvel < 0) {
+                                this.xvel = this.x - (x * map.tileSize + map.tileSize);
+                            }
+                            if (this.yvel > 0) {
+                                this.yvel = (y * map.tileSize - spriteSize) - this.y;
+                            }
+                            else if (this.yvel < 0) {
+                                this.yvel = (y * map.tileSize + map.tileSize) - this.y;
+                            }
+                            break;
+                        case TileEnum.PICKUP:
+                            console.log(game.score)
+                            map.levelData[y][x] = TileEnum.EMPTY;
+                            game.score = game.score + 10;
+                            break;
                     }
                 }
-
             }
         }
     }
 
-    didCollideRect(sx,sy,sw,sh,tx,ty,tw,th){
-        if(tx < sx + sw && 
-            tx + tw > sx && 
-            ty < sy + sh && 
-            ty + th > sy ){
+    didCollideRect(sx, sy, sw, sh, tx, ty, tw, th) {
+        if (tx < sx + sw &&
+            tx + tw > sx &&
+            ty < sy + sh &&
+            ty + th > sy) {
             return true
         }
         return false;
@@ -300,5 +321,4 @@ class Player extends Sprite {
 }
 
 class Pickup extends Sprite {
-    
 }
