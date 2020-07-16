@@ -26,7 +26,10 @@ var playerImage = new Image();
 playerImage.src = "images/player.png";
 
 var tileSheet = new Image();
-tileSheet.src = "images/tilesheet.png"
+tileSheet.src = "images/tilesheet.png";
+
+var pickupSheet = new Image();
+pickupSheet.src = "images/pickups.png";
 
 window.onload = init;
 
@@ -122,6 +125,21 @@ class Game {
         this.map = new Map(tileSheet, level_one);
 
         this.entities.push(this.player);
+        this.entities.push(new Pickup(64, 64))
+        // this.initializePickups();
+    }
+
+    initializePickups () {
+        var x;
+        var y;
+        for (y = 0; y < this.map.levelData.length; y++) {
+            for (x = 0; x < this.map.levelData[y].length; x++) {
+                if(this.map.levelData[y][x] == 0){
+                    var pickup = new Pickup(x * spriteSize + (spriteSize / 2), y * spriteSize + (spriteSize / 2));
+                    this.entities.push(pickup);
+                }
+            }
+        }
     }
 
     update() {
@@ -167,60 +185,52 @@ class Tile {
     }
 }
 
-class Map {
-    constructor(tileSheet, levelData) {
-        this.tileSheet = tileSheet;
-        this.levelData = levelData;
-        this.width = levelData[0].length;
-        this.height = levelData.length;
-        this.tiles = [];
+class TileSet {
+    constructor(spriteSheet){
         this.tileSize = spriteSize;
+        this.spriteSheet = spriteSheet;
+        this.tiles = [];
 
         var x;
         var y;
-        for (x = 0; x < this.tileSheet.width / this.tileSize; x++) {
-            for (y = 0; y < this.tileSheet.height / this.tileSize; y++) {
+        for (x = 0; x < this.spriteSheet.width / this.tileSize; x++) {
+            for (y = 0; y < this.spriteSheet.height / this.tileSize; y++) {
+                console.log('count')
                 this.tiles.push(new Tile(x, y))
-            }
-        }
-    }
-
-    draw() {
-
-        context.drawImage(this.tileSheet, 200, 300);
-
-        var x;
-        var y;
-        for (y = 0; y < this.levelData.length; y++) {
-            for (x = 0; x < this.levelData[y].length; x++) {
-                this.drawTile(x, y, this.tiles[this.levelData[y][x]])
             }
         }
     }
 
     drawTile(x, y, tile) {
         context.drawImage(
-            this.tileSheet,
+            this.spriteSheet,
             tile.tilesetX * this.tileSize, tile.tilesetY * this.tileSize, this.tileSize, this.tileSize, // source coords
             Math.floor(x * this.tileSize), Math.floor(y * this.tileSize), this.tileSize, this.tileSize // destination coords
         );
     }
 }
 
-class Pickup {
-    constructor() {
-        this.x = x;
-        this.y = y;
-        this.value = 10;
+
+class Map {
+    constructor(tileSheet, levelData) {
+        this.levelData = levelData;
+        this.width = levelData[0].length;
+        this.height = levelData.length;
+        this.tileSet = new TileSet(tileSheet);
     }
-}
 
-class PowerUp extends Pickup {
+    draw() {
 
-}
+        context.drawImage(this.tileSet.spriteSheet, 200, 300);
 
-class Special extends Pickup {
-    
+        var x;
+        var y;
+        for (y = 0; y < this.levelData.length; y++) {
+            for (x = 0; x < this.levelData[y].length; x++) {
+                this.tileSet.drawTile(x, y, this.tileSet.tiles[this.levelData[y][x]])
+            }
+        }
+    }
 }
 
 class Sprite {
@@ -354,8 +364,6 @@ class Sprite {
         }
     }
 
-
-
     collideLevel(map) {
         var x;
         var y;
@@ -393,6 +401,19 @@ class Sprite {
         return false;
     }
 
+}
+
+const pickupTiles = new TileSet(pickupSheet);
+
+class Pickup extends Sprite {
+    constructor(x, y){
+        super(x, y);
+
+        this.currentGraphic = pickupTiles.spriteSheet;
+    }
+    draw(){
+        pickupTiles.drawTile(this.x, this.y, pickupTiles.tiles[0])
+    }
 }
 
 class Player extends Sprite {
