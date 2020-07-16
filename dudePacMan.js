@@ -254,7 +254,7 @@ class Sprite {
                 break;
         }
 
-        this.collideLevel(map);
+        if(this.checkCollisions) this.checkCollisions(map);
 
         this.x += this.xvel;
         this.y += this.yvel;
@@ -267,8 +267,10 @@ class Sprite {
         if (this.x + spriteSize > screenX) { this.x = screenX - spriteSize }
         if (this.y + spriteSize > screenY) { this.y = screenY - spriteSize }
     }
+}
 
-    collideLevel(map) {
+class Actor extends Sprite {
+    checkCollisions(map){
         var x;
         var y;
         for (y = 0; y < map.levelData.length; y++) {
@@ -278,30 +280,25 @@ class Sprite {
                 if (mapTile != TileEnum.EMPTY)
                     var isCollided = this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize);
 
-                if (isCollided) {
-                    switch (mapTile) {
-                        case TileEnum.WALL:
-                            if (this.xvel > 0) {
-                                this.xvel = this.x - (x * map.tileSize - spriteSize);
-                            }
-                            else if (this.xvel < 0) {
-                                this.xvel = this.x - (x * map.tileSize + map.tileSize);
-                            }
-                            if (this.yvel > 0) {
-                                this.yvel = (y * map.tileSize - spriteSize) - this.y;
-                            }
-                            else if (this.yvel < 0) {
-                                this.yvel = (y * map.tileSize + map.tileSize) - this.y;
-                            }
-                            break;
-                        case TileEnum.PICKUP:
-                            console.log(game.score)
-                            map.levelData[y][x] = TileEnum.EMPTY;
-                            game.score = game.score + 10;
-                            break;
-                    }
+                if (isCollided && this.resolveCollision) {
+                    this.resolveCollision(mapTile, map, x, y);
                 }
             }
+        }
+    }
+
+    collideLevel(map, x, y) {
+        if (this.xvel > 0) {
+            this.xvel = this.x - (x * map.tileSize - spriteSize);
+        }
+        else if (this.xvel < 0) {
+            this.xvel = this.x - (x * map.tileSize + map.tileSize);
+        }
+        if (this.yvel > 0) {
+            this.yvel = (y * map.tileSize - spriteSize) - this.y;
+        }
+        else if (this.yvel < 0) {
+            this.yvel = (y * map.tileSize + map.tileSize) - this.y;
         }
     }
 
@@ -314,10 +311,26 @@ class Sprite {
         }
         return false;
     }
-
 }
 
-class Player extends Sprite {
+class Player extends Actor {
+    
+    resolveCollision(mapTile, map, x, y){
+        switch (mapTile) {
+            case TileEnum.WALL:
+                this.collideLevel(map, x, y);
+                break;
+            case TileEnum.PICKUP:
+                this.collidePickup(map, x, y);
+                break;
+        }
+    }
+    
+    collidePickup(map, x, y){
+        console.log(game.score)
+        map.levelData[y][x] = TileEnum.EMPTY;
+        game.score = game.score + 10;
+    }
 }
 
 class Pickup extends Sprite {
