@@ -1,0 +1,55 @@
+body {
+    background-color: #00263a;
+    font-family: 'Press Start 2P', cursive;
+    color: white;
+}
+
+h2 {
+    display: inline-block;
+    padding: 10px 30px;
+}
+
+h2.active {
+    background-color: #87B2D7;
+}
+
+section, div.section-header {
+    width: 75%;
+    margin: 0 auto;
+
+}
+
+section {
+    border: 10px solid #FF5C39;
+    padding: 5px;
+}
+
+canvas {
+    margin: 0 auto;
+}
+
+#board-header {
+    width: 100%;
+    padding: 10px 20px;
+}
+
+#controls button {
+    height: 32px;
+    border-radius: 3px;
+    background-color: transparent;
+    border: #87B2D7 solid 1px;
+    color: white;
+    font-family: inherit;
+}
+
+.pause {
+    width: 32px;
+    background-image: url("images/pause.png");
+    background-position: center center;
+}
+
+.play {
+    width: 32px;
+    background-image: url("images/play.png");
+    background-position: center center;
+}
