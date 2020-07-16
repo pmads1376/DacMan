@@ -22,14 +22,6 @@ const DirectionEnum = {
 }
 Object.freeze(DirectionEnum)
 
-
-const TileEnum = {
-    "EMPTY": 0,
-    "WALL": 1,
-    "PICKUP": 2
-}
-Object.freeze(TileEnum);
-
 var playerImage = new Image();
 playerImage.src = "images/player.png";
 
@@ -38,6 +30,9 @@ tileSheet.src = "images/tilesheet.png"
 
 var enemyImage = new Image();
 enemyImage.src = "images/ghost.png"
+
+var pickupImage = new Image();
+pickupImage.src = "images/pickup.png";
 
 window.onload = init;
 
@@ -128,14 +123,32 @@ function toggleGamePause() {
 
 class Game {
     constructor(){
+        this.score = 0;
         this.entities = [];
         this.enemies = [];
         this.player = new Player(32,32, 2, playerImage, DirectionEnum.DOWN);
         this.map = new Map(tileSheet, level_one);
         var ghost = new Enemy(128, 32, 2, enemyImage, DirectionEnum.RIGHT);
 
+        this.initializePickups();
+
         this.entities.push(this.player);
         this.enemies.push(ghost);
+    }
+
+    initializePickups(){
+        this.pickups = [];
+        var x;
+        var y;
+        for (y = 0; y < this.map.levelData.length; y++){
+            for (x = 0; x < this.map.levelData[y].length; x++){
+                if(this.map.levelData[y][x] === 0){
+                    var pickUp = new Pickup(x * spriteSize, y * spriteSize);
+                    this.pickups.push(pickUp);
+                    this.entities.push(pickUp);
+                }
+            }
+        }
     }
 
     update() {
@@ -160,6 +173,8 @@ class Game {
         this.enemies.forEach(enemy => {
             enemy.draw(this.map);
         });
+
+        document.getElementById("score-board").innerHTML = this.score;
     }
     
     drawBackGround() {
@@ -230,21 +245,42 @@ class Map {
 }
 
 class Sprite {
-    constructor(x, y, speed, currentGraphic, startDirection){
+    constructor(x, y, currentGraphic){
         this.currentGraphic = currentGraphic;
         this.sprintSize = spriteSize
-        this.currentDirection = startDirection;
-        this.nextDirection = this.currentDirection;
         this.alive = true;
         this.x = x;
         this.y = y;
+    }
+
+    update() {}
+
+    draw() {
+        if(this.alive)
+        {
+            context.drawImage(this.currentGraphic, this.x, this.y);
+        }
+    }
+}
+
+class Pickup extends Sprite {
+    constructor(x, y){
+        super(x, y, pickupImage)
+    }
+
+    getScore() {
+        return 10;
+    }
+}
+
+class Actor extends Sprite {
+    constructor(x, y, speed, currentGraphic, startDirection){
+        super(x, y, currentGraphic);
         this.xvel = 0;
         this.yvel = 0
         this.speed = speed;
-    }
-
-    draw() {
-        context.drawImage(this.currentGraphic, this.x, this.y);
+        this.currentDirection = startDirection;
+        this.nextDirection = this.currentDirection;
     }
 
     update(map) {
@@ -399,10 +435,26 @@ class Sprite {
 
 }
 
-class Player extends Sprite {
+class Player extends Actor {
+    update(map){
+        Actor.prototype.update.call(this, map);
+
+        this.collideWithPickup();        
+    }
+
+    collideWithPickup () {
+        for(var i = 0; i < game.pickups.length; i++){
+            var pickup = game.pickups[i];
+
+            if(pickup.alive && this.x == pickup.x && this.y == pickup.y){
+                game.score = game.score + pickup.getScore();
+                game.pickups[i].alive = false;
+            }
+        }
+    }
 }
 
-class Enemy extends Sprite {
+class Enemy extends Actor {
 
     update(map, player){
 
