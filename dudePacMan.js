@@ -59,10 +59,23 @@ function keyDownHandler(event) {
 }
 
 function keyUpHandler(event) {
-    if (game.currentState == GameStateEnum.LOAD_LEVEL) {
-        startGame();
+    switch(game.currentState){
+        case GameStateEnum.LOAD_LEVEL:
+            startGame();
+            break;
+        case GameStateEnum.LEVEL_COMPLETE:
+            let nextLevel = currentLevel + 1;
+
+            if(levels[nextLevel]){
+                loadNewGame();
+                startGame();
+            } else {
+                game.currentState = GameStateEnum.GAME_COMPLETE;
+            }
+
+            break;
     }
-    
+
     if (event.keyCode == 39) {
         rightPressed = false;
     }
@@ -153,7 +166,7 @@ const GameStateEnum = {
         putTextOnOverlay("Game Over");
     },
     GAME_COMPLETE: function (game) {
-
+        putTextOnOverlay("Game Completed!<br>Score " + game.score + "!" );
     }
 }
 
