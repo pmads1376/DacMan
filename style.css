@@ -44,12 +44,12 @@ canvas {
 
 .pause {
     width: 32px;
-    background-image: url("images/controlsheet.png") 32px 32px;
+    background-image: url("images/pause.png");
     background-position: center center;
 }
 
 .play {
     width: 32px;
-    background-image: url("images/controlsheet.png") 0 32px;
+    background-image: url("images/play.png");
     background-position: center center;
 }
