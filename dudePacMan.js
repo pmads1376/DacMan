@@ -35,7 +35,7 @@ function init() {
     document.addEventListener('keyup', keyUpHandler, false);
 
     // Start the first frame request
-    loadNewGame();
+    createNewGame();
     window.requestAnimationFrame(mainLoop);
 }
 
@@ -69,8 +69,10 @@ function keyUpHandler(event) {
             let nextLevel = currentLevel + 1;
 
             if (levels[nextLevel]) {
-                loadNewGame();
+                currentLevel = nextLevel;
+                game.loadLevel(currentLevel);
                 startGame();
+                game.currentState = GameStateEnum.STARTING;
             } else {
                 game.currentState = GameStateEnum.GAME_COMPLETE;
             }
@@ -92,16 +94,13 @@ function keyUpHandler(event) {
     }
 }
 
-function startNewGame() {
+function createNewGame() {
     currentLevel = 1;
     itemCollection = [];
     document.getElementById("item-collection").innerHTML = "";
-    scores.push(game.score);
+    
+    if(game) scores.push(game.score);
 
-    loadNewGame();
-}
-
-function loadNewGame() {
     game = new Game(currentLevel);
 }
 
@@ -163,7 +162,7 @@ function toggleGamePause() {
 const GameStateEnum = {
     LOAD_LEVEL: function (game) {
         game.draw();
-        putTextOnOverlay("Press Any Key To Continue");
+        putTextOnOverlay("Level " + currentLevel + '<br><br> <span style="font-size: 32px;">Press Any Key To Play!</span>');
     },
     STARTING: function (game) {
     },
@@ -177,7 +176,7 @@ const GameStateEnum = {
         putTextOnOverlay("Paused");
     },
     LEVEL_COMPLETE: function (game) {
-        putTextOnOverlay("Level " + game.levelNumber + " Complete!")
+        putTextOnOverlay("Level " + game.levelNumber + " Complete!<br><br> Press Any Key To Play!")
     },
     GAME_OVER: function (game) {
         putTextOnOverlay("Game Over");
@@ -189,25 +188,33 @@ const GameStateEnum = {
 
 function putTextOnOverlay(text, fontSize) {
     document.getElementById("canvas-overlay").innerHTML = text || "";
-    document.getElementById("canvas-overlay").style.fontSize = fontSize || "32px";
+    document.getElementById("canvas-overlay").style.fontSize = fontSize || "64px";
 }
 
 class Game {
     constructor(levelNumber) {
         this.currentState = GameStateEnum.LOAD_LEVEL;
 
-        this.score = 0;
+        this.score = 0;        
+        this.loadLevel(levelNumber);
+    }
+
+    loadLevel(levelNumber) {
         this.entities = [];
         this.enemies = [];
+        this.pickups = [];
+
         this.levelNumber = levelNumber;
         this.level = levels[levelNumber];
 
         this.player = new Player(this.level.startingCoords[0] * spriteSize, this.level.startingCoords[0] * spriteSize, 2, playerImage, DirectionEnum.DOWN);
         this.map = new Map(tileSheet, this.level.map);
         var ghost = new Enemy(128, 32, 2, enemyImage, DirectionEnum.RIGHT);
-
-        this.pickups = [];
+        
         this.initializePickups();
+        // var pickup =new Pickup(32, 64);
+        // this.pickups.push(pickup);
+        // this.entities.push(pickup)
         this.pickupsRemaining = this.pickups.length;
 
         this.entities.push(this.player);
