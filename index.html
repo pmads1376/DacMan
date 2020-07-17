@@ -19,8 +19,8 @@
   </header>
   <main>
     <div class="section-header">
-      <h4 onclick="showBoard();" class="active">Play</h4>
-      <h4 onclick="showScore();">Scores</h4>
+      <h2 onclick="showBoard();" class="active">Play</h2>
+      <h2 onclick="showScore();">Scores</h2>
     </div>
     <section id="game-board-section">
         <div id="board-header">
@@ -31,7 +31,11 @@
             <button id="new-game" onclick="startNewGame();"> New Game </button>
           </div>
         </div>
-        <canvas id="dudePacMan" width="768" height="512"></canvas>
+        <div id="canvas-container">
+        <canvas id="dudePacMan" width="768" height="512">
+        </canvas>
+        <div id="canvas-overlay"></div>
+      </div>
       </div>
     </section>
     <section id="score-section" style="display: none;">

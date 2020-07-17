@@ -20,12 +20,25 @@ section, div.section-header {
 }
 
 section {
-    border: 10px solid #FF5C39;
     padding: 5px;
+    margin: 0 auto;
+}
+
+#canvas-container {
+    position: relative;
 }
 
 canvas {
-    margin: 0 auto;
+    position: absolute;
+}
+
+#canvas-overlay{
+    top: 200px;
+    width: 100%;
+    position: absolute;
+    font-size: 32px;
+    text-align: center;
+    font-family: "Press Start 2P", cursive;
 }
 
 #board-header {

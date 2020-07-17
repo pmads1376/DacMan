@@ -33,7 +33,7 @@ function init() {
     document.addEventListener('keyup', keyUpHandler, false);
 
     // Start the first frame request
-    startNewGame();
+    loadNewGame();
     window.requestAnimationFrame(mainLoop);
 }
 
@@ -59,10 +59,10 @@ function keyDownHandler(event) {
 }
 
 function keyUpHandler(event) {
-    if(game.currentState == GameStateEnum.LOAD_LEVEL){
-        game.currentState = GameStateEnum.PLAYING;
+    if (game.currentState == GameStateEnum.LOAD_LEVEL) {
+        startGame();
     }
-
+    
     if (event.keyCode == 39) {
         rightPressed = false;
     }
@@ -77,8 +77,24 @@ function keyUpHandler(event) {
     }
 }
 
-function startNewGame() {
+function loadNewGame() {
     game = new Game(currentLevel);
+}
+
+function startGame() {
+    putTextOnOverlay();
+    game.currentState = GameStateEnum.STARTING;
+    var sec = 3;
+    var countDownInterval = window.setInterval(function () {
+        putTextOnOverlay(sec, "96px")
+        sec--;
+        if (sec < 0) {
+            clearInterval(countDownInterval);
+            putTextOnOverlay()
+            game.currentState = GameStateEnum.PLAYING;
+            return;
+        }
+    }, 1000)
 }
 
 function showBoard() {
@@ -104,7 +120,11 @@ function showScore() {
 }
 
 function toggleGamePause() {
-    game.currentState = GameStateEnum.PAUSED;
+    if (game.currentState == GameStateEnum.PAUSED) {
+        game.currentState = GameStateEnum.PLAYING;
+    } else if (game.currentState == GameStateEnum.PLAYING) {
+        game.currentState = GameStateEnum.PAUSED;
+    }
 
     var playPauseBtn = document.getElementById("play-pause-toggle");
     playPauseBtn.classList.toggle("pause");
@@ -112,30 +132,34 @@ function toggleGamePause() {
 }
 
 const GameStateEnum = {
-    LOAD_LEVEL : function(game){
+    LOAD_LEVEL: function (game) {
         game.draw();
-        showTextOnCanvas("Press Any Key To Continue")
+        putTextOnOverlay("Press Any Key To Continue");
     },
-    PLAYING : function(game){
+    STARTING: function (game) {
+    },
+    PLAYING: function (game) {
         game.update();
         game.draw();
     },
-    PAUSED : function(game){
+    PAUSED: function (game) {
         game.draw();
-
+        putTextOnOverlay("Paused");
     },
-    GAME_OVER : function(game){
-        showTextOnCanvas("Paused")
+    LEVEL_COMPLETE: function (game) {
+        putTextOnOverlay("Level " + game.levelNumber + " Complete!")
     },
+    GAME_OVER: function (game) {
+        putTextOnOverlay("Game Over");
+    },
+    GAME_COMPLETE: function (game) {
 
+    }
 }
-Object.freeze(GameStateEnum);
 
-function showTextOnCanvas (text) {
-    context.font = "Press Start 2P";
-    context.fillStyle = "#fff";
-    context.textAlign = "center";
-    context.fillText(text, Math.round(screenX / 2), Math.round(screenY / 2));
+function putTextOnOverlay(text, fontSize) {
+    document.getElementById("canvas-overlay").innerHTML = text || "";
+    document.getElementById("canvas-overlay").style.fontSize = fontSize || "32px";
 }
 
 class Game {
@@ -160,12 +184,11 @@ class Game {
         this.enemies.push(ghost);
     }
 
-    processState(){
+    processState() {
         this.currentState(this);
     }
 
     initializePickups() {
-
         var x;
         var y;
         for (y = 0; y < this.map.levelData.length; y++) {
@@ -199,11 +222,11 @@ class Game {
             enemy.update(this.map, this.player);
         })
     }
-    
+
     draw() {
         this.drawBackGround()
         this.map.draw();
-    
+
         this.entities.forEach(entity => {
             entity.draw();
         });
@@ -499,11 +522,11 @@ class Player extends Actor {
             if (pickup.alive && this.x == pickup.x && this.y == pickup.y) {
                 game.score = game.score + pickup.getScore();
                 game.pickups[i].alive = false;
-                game.pickupsRemaining++;
+                game.pickupsRemaining--;
             }
 
-            if(game.pickupsRemaining === 0){
-                game.currentState = GameStateEnum.END_GAME;
+            if (game.pickupsRemaining === 0) {
+                game.currentState = GameStateEnum.LEVEL_COMPLETE;
             }
         }
     }
@@ -620,5 +643,4 @@ class Enemy extends Actor {
                 }
         }
     }
-
 }
