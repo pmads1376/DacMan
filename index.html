@@ -42,9 +42,9 @@
           </div>
           <div id="item-collection"></div>
           <div id="controls">
-            <button id="new-game" onclick="createNewGame();"> New Game </button>
-            <button id="play-pause-toggle" onclick="toggleGamePause();" class="pause">&nbsp;</button>
-            <button id="mute-btn" class="mute control-btn" onclick="toggleMute();">&nbsp;</button>
+            <button id="new-game" onclick="createNewGame(); this.blur();"> New Game </button>
+            <button id="play-pause-toggle" onclick="toggleGamePause(); this.blur();" class="pause">&nbsp;</button>
+            <button id="mute-btn" class="mute control-btn" onclick="toggleMute(); this.blur();">&nbsp;</button>
           </div>
         </div>
         <div id="canvas-container">

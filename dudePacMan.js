@@ -128,7 +128,13 @@ function showBoard() {
     var sections = document.getElementsByTagName("section");
     for (const section of sections) {
         section.style.display = "none";
+        section.classList.remove("active");
     };
+
+    var h2s = document.getElementsByTagName("h2");
+    for(const h2 of h2s){
+        h2.classList.toggle("active");
+    }
 
     document.getElementById("game-board-section").style.display = "block";
 }
@@ -142,6 +148,11 @@ function showScore() {
     for (const section of sections) {
         section.style.display = "none";
     };
+
+    var h2s = document.getElementsByTagName("h2");
+    for(const h2 of h2s){
+        h2.classList.toggle("active");
+    }
 
     var scoresHtml = "No Scores";
     if (scores.length != 0) {
