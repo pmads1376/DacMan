@@ -129,7 +129,7 @@ function showBoard() {
 }
 
 function showScore() {
-    if (!game.isPaused) {
+    if (game.currentState == GameStateEnum.PLAYING) {
         toggleGamePause();
     }
 
@@ -161,6 +161,7 @@ const GameStateEnum = {
     STARTING: function (game) {
     },
     PLAYING: function (game) {
+        putTextOnOverlay();
         game.update();
         game.draw();
     },
