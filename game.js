@@ -79,6 +79,7 @@ class Game {
     draw() {
         this.drawBackGround()
         this.map.draw();
+        this.drawLives();
 
         this.entities.forEach(entity => {
             entity.draw();
@@ -116,10 +117,20 @@ class Game {
         this.player.alive = true;
         this.player.lives -= 1;
 
+        this.drawLives();
+
         this.enemies.forEach((enemy, index) => {
             enemy.x = this.level.ghosts[index].x * spriteSize;
             enemy.y = this.level.ghosts[index].y * spriteSize;
         })
     }
 
+    drawLives() {
+        var lifeImages = [];
+        for(var l = 0; l < this.player.lives; l++){
+            lifeImages.push('<img src="images/player.png" class="life">');
+        }
+
+        document.getElementById("lives").innerHTML = lifeImages.length === 0 ? "" : lifeImages.reduce((a, h) => a + h);
+    }
 }

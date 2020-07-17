@@ -103,3 +103,13 @@ canvas {
 .unmute {
     background-image: url("images/unmute.png");
 }
+
+#lives {
+    margin-top: 10px;
+}
+
+.life {
+    height: 16px;
+    width: 16px;
+    padding-right: 10px;
+}
