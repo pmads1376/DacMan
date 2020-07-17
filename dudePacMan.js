@@ -8,6 +8,7 @@ let canvas;
 let context;
 let game;
 let currentLevel = 1;
+let itemCollection = [];
 
 var rightPressed = false;
 var leftPressed = false;
@@ -92,6 +93,9 @@ function keyUpHandler(event) {
 
 function startNewGame(){
     currentLevel = 1;
+    itemCollection = [];
+    document.getElementById("item-collection").innerHTML = "";
+
     loadNewGame();
 }
 
@@ -225,6 +229,7 @@ class Game {
         var randomPickup = Math.floor(Math.random() * this.pickups.length);
         var oldPickUp = this.pickups[randomPickup];
         var special = new Special(oldPickUp.x, oldPickUp.y, this);
+
         this.pickups.splice(randomPickup, 1, special);
 
         this.entities = this.entities.concat(this.pickups);
@@ -541,6 +546,15 @@ class Player extends Actor {
                 game.score = game.score + pickup.getScore();
                 game.pickups[i].alive = false;
                 game.pickupsRemaining--;
+
+                if(pickup instanceof Special){
+                    itemCollection.push(pickup.currentGraphic);
+                    let html = itemCollection.map(item => {
+                        return '<img src="' + item.src + '">'
+                    }).reduce((acc, img) => acc + img);
+
+                    document.getElementById("item-collection").innerHTML = html;
+                }
             }
 
             if (game.pickupsRemaining === 0) {

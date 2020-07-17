@@ -43,7 +43,7 @@ canvas {
 }
 
 #board-header {
-    height: 54px;
+    height: 60px;
     width: 100%;
     padding: 10px 20px;
 }
@@ -57,6 +57,7 @@ canvas {
 }
 
 #item-collection {
+    margin-top: 10px;
     width: 300px;
 }
 
