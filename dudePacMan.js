@@ -11,6 +11,7 @@ let playerResetCountdown;
 let currentLevel = 1;
 let itemCollection = [];
 let scores = [];
+let muted = false;
 
 var rightPressed = false;
 var leftPressed = false;
@@ -35,7 +36,9 @@ function init() {
     document.addEventListener('keydown', keyDownHandler, false);
     document.addEventListener('keyup', keyUpHandler, false);
 
-    // Start the first frame request
+    backgroundMusic.loop = true;
+    backgroundMusic.play();
+
     createNewGame();
     window.requestAnimationFrame(mainLoop);
 }
@@ -158,6 +161,15 @@ function toggleGamePause() {
     var playPauseBtn = document.getElementById("play-pause-toggle");
     playPauseBtn.classList.toggle("pause");
     playPauseBtn.classList.toggle("play");
+}
+
+function toggleMute() {
+    backgroundMusic.muted = !muted;
+    muted = !muted;
+
+    var muteBtn = document.getElementById("mute-btn");
+    muteBtn.classList.toggle("mute");
+    muteBtn.classList.toggle("unmute");
 }
 
 const GameStateEnum = {

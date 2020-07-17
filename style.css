@@ -62,11 +62,11 @@ canvas {
 
 #item-collection {
     margin-top: -10px;
-    width: 300px;
+    width: 200px;
 }
 
 #controls {
-    width: 200px;
+    width: 300px;
     text-align: right;
 }
 
@@ -79,6 +79,11 @@ canvas {
     font-family: inherit;
 }
 
+.control-btn {
+    width: 32px;
+    background-position: center center;
+}
+
 .pause {
     width: 32px;
     background-image: url("images/pause.png");
@@ -89,4 +94,12 @@ canvas {
     width: 32px;
     background-image: url("images/play.png");
     background-position: center center;
+}
+
+.mute {
+    background-image: url("images/mute.png");
+}
+
+.unmute {
+    background-image: url("images/unmute.png");
 }
