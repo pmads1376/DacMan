@@ -10,10 +10,12 @@ class Actor extends Sprite {
 
     update(map) {
 
-        if (this.canChangeDirection(map)) {
-            this.currentDirection = this.nextDirection;
-        } else {
-            this.nextDirection = this.currentDirection;
+        if (this.currentDirection != this.nextDirection){
+            if (this.canChangeDirection(map)) {
+                this.currentDirection = this.nextDirection;
+            } else {
+                this.nextDirection = this.currentDirection;
+            }
         }
 
         switch (this.currentDirection) {
@@ -46,48 +48,50 @@ class Actor extends Sprite {
     }
 
     canChangeDirection(map) {
-        if (this.x % map.tileSize == 0 && this.y % map.tileSize == 0) {
+        switch (this.currentDirection) {
+            case DirectionEnum.UP:
+                if (this.nextDirection == DirectionEnum.DOWN) {
+                    return true;
+                }
+                return this.checkXAxisCanMove(map);
+            case DirectionEnum.DOWN:
+                if (this.nextDirection == DirectionEnum.UP) {
+                    return true;
+                }
+                return this.checkXAxisCanMove(map);
+            case DirectionEnum.LEFT:
+                if (this.nextDirection == DirectionEnum.RIGHT) {
+                    return true;
+                }
+                return this.checkYAxisCanMove(map);
+            case DirectionEnum.RIGHT:
+                if (this.nextDirection == DirectionEnum.LEFT) {
+                    return true;
+                }
+                return this.checkYAxisCanMove(map);
+            case DirectionEnum.STOPPED:
+                if (this.checkXAxisCanMove(map)) {
+                    return true;
+                }
+                if (this.checkYAxisCanMove(map)) {
+                    return true;
+                }
 
-            var entityMapX = Math.floor(this.x / map.tileSize);
-            var entityMapY = Math.floor(this.y / map.tileSize);
-
-            switch (this.currentDirection) {
-                case DirectionEnum.UP:
-                    if (this.nextDirection == DirectionEnum.DOWN) {
-                        return false;
-                    }
-                    return this.checkXAxisCanMove(map, entityMapX, entityMapY);
-                case DirectionEnum.DOWN:
-                    if (this.nextDirection == DirectionEnum.UP) {
-                        return false;
-                    }
-                    return this.checkXAxisCanMove(map, entityMapX, entityMapY);
-                case DirectionEnum.LEFT:
-                    if (this.nextDirection == DirectionEnum.RIGHT) {
-                        return false;
-                    }
-                    return this.checkYAxisCanMove(map, entityMapX, entityMapY);
-                case DirectionEnum.RIGHT:
-                    if (this.nextDirection == DirectionEnum.LEFT) {
-                        return false;
-                    }
-                    return this.checkYAxisCanMove(map, entityMapX, entityMapY);
-                case DirectionEnum.STOPPED:
-                    if (this.checkXAxisCanMove(map, entityMapX, entityMapY)) {
-                        return true;
-                    }
-                    if (this.checkYAxisCanMove(map, entityMapX, entityMapY)) {
-                        return true;
-                    }
-
-                    return false;
-            }
+                return false;
         }
+    
 
         return false;
     }
 
-    checkXAxisCanMove(map, entityMapX, entityMapY) {
+    checkXAxisCanMove(map) {
+        if (!this.isAtIntersection(map)){
+            return false;
+        }
+
+        var entityMapX = Math.floor(this.x / map.tileSize);
+        var entityMapY = Math.floor(this.y / map.tileSize);
+
         switch (this.nextDirection) {
             case DirectionEnum.LEFT:
                 if (map.levelData[entityMapY][entityMapX - 1] == 0) {
@@ -104,7 +108,14 @@ class Actor extends Sprite {
         }
     }
 
-    checkYAxisCanMove(map, entityMapX, entityMapY) {
+    checkYAxisCanMove(map) {
+        if (!this.isAtIntersection(map)){
+            return false;
+        }
+
+        var entityMapX = Math.floor(this.x / map.tileSize);
+        var entityMapY = Math.floor(this.y / map.tileSize);
+
         switch (this.nextDirection) {
             case DirectionEnum.UP:
                 if (map.levelData[entityMapY - 1][entityMapX] == 0) {
@@ -118,6 +129,14 @@ class Actor extends Sprite {
                 } else {
                     return false;
                 }
+        }
+    }
+
+    isAtIntersection(map){
+        if (this.x % map.tileSize == 0 && this.y % map.tileSize == 0){
+            return true;
+        }else{
+            return false;
         }
     }
 
