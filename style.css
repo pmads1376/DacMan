@@ -5,6 +5,7 @@ body {
 }
 
 h2 {
+    font-size: 20px;
     display: inline-block;
     padding: 10px 30px;
 }
@@ -14,13 +15,11 @@ h2.active {
 }
 
 section, div.section-header {
-    width: 75%;
+    width: 768px;
     margin: 0 auto;
-
 }
 
 section {
-    padding: 5px;
     margin: 0 auto;
 }
 
@@ -30,6 +29,8 @@ section {
 
 canvas {
     position: absolute;
+    width: 768px;
+    height: 512px;
 }
 
 #canvas-overlay{
@@ -42,8 +43,26 @@ canvas {
 }
 
 #board-header {
+    height: 54px;
     width: 100%;
     padding: 10px 20px;
+}
+
+#board-header div {
+    display: inline-block;
+}
+
+#game-score-container {
+    width: 200px;
+}
+
+#item-collection {
+    width: 300px;
+}
+
+#controls {
+    width: 200px;
+    text-align: right;
 }
 
 #controls button {
