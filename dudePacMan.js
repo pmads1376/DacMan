@@ -7,6 +7,7 @@ const tileHeight = screenY / spriteSize;
 let canvas;
 let context;
 let game;
+let currentLevel = 1;
 
 var rightPressed = false;
 var leftPressed = false;
@@ -37,10 +38,7 @@ function init() {
 }
 
 function mainLoop() {
-    if (!game.isPaused && !game.isGameFinished()) {
-        game.update();
-        game.draw();
-    }
+    game.processState();
 
     window.requestAnimationFrame(mainLoop);
 }
@@ -61,6 +59,10 @@ function keyDownHandler(event) {
 }
 
 function keyUpHandler(event) {
+    if(game.currentState == GameStateEnum.LOAD_LEVEL){
+        game.currentState = GameStateEnum.PLAYING;
+    }
+
     if (event.keyCode == 39) {
         rightPressed = false;
     }
@@ -76,7 +78,7 @@ function keyUpHandler(event) {
 }
 
 function startNewGame() {
-    game = new Game(1);
+    game = new Game(currentLevel);
 }
 
 function showBoard() {
@@ -102,22 +104,51 @@ function showScore() {
 }
 
 function toggleGamePause() {
-    game.isPaused = !game.isPaused;
+    game.currentState = GameStateEnum.PAUSED;
 
     var playPauseBtn = document.getElementById("play-pause-toggle");
     playPauseBtn.classList.toggle("pause");
     playPauseBtn.classList.toggle("play");
 }
 
+const GameStateEnum = {
+    LOAD_LEVEL : function(game){
+        game.draw();
+        showTextOnCanvas("Press Any Key To Continue")
+    },
+    PLAYING : function(game){
+        game.update();
+        game.draw();
+    },
+    PAUSED : function(game){
+        game.draw();
+
+    },
+    GAME_OVER : function(game){
+        showTextOnCanvas("Paused")
+    },
+
+}
+Object.freeze(GameStateEnum);
+
+function showTextOnCanvas (text) {
+    context.font = "Press Start 2P";
+    context.fillStyle = "#fff";
+    context.textAlign = "center";
+    context.fillText(text, Math.round(screenX / 2), Math.round(screenY / 2));
+}
+
 class Game {
-    constructor(levelNumber){
+    constructor(levelNumber) {
+        this.currentState = GameStateEnum.LOAD_LEVEL;
+
         this.score = 0;
         this.entities = [];
         this.enemies = [];
         this.levelNumber = levelNumber;
         this.level = levels[levelNumber];
 
-        this.player = new Player(this.level.startingCoords[0] * spriteSize, this.level.startingCoords[0] *spriteSize, 2, playerImage, DirectionEnum.DOWN);
+        this.player = new Player(this.level.startingCoords[0] * spriteSize, this.level.startingCoords[0] * spriteSize, 2, playerImage, DirectionEnum.DOWN);
         this.map = new Map(tileSheet, this.level.map);
         var ghost = new Enemy(128, 32, 2, enemyImage, DirectionEnum.RIGHT);
 
@@ -129,21 +160,21 @@ class Game {
         this.enemies.push(ghost);
     }
 
-    isGameFinished() {
-        return this.pickupsRemaining == 0;
+    processState(){
+        this.currentState(this);
     }
 
-    initializePickups(){
-        
+    initializePickups() {
+
         var x;
         var y;
-        for (y = 0; y < this.map.levelData.length; y++){
-            for (x = 0; x < this.map.levelData[y].length; x++){
-                if(y == this.level.startingCoords[1] && x == this.level.startingCoords[0]){
+        for (y = 0; y < this.map.levelData.length; y++) {
+            for (x = 0; x < this.map.levelData[y].length; x++) {
+                if (y == this.level.startingCoords[1] && x == this.level.startingCoords[0]) {
                     continue;
                 }
 
-                if(this.map.levelData[y][x] === 0){
+                if (this.map.levelData[y][x] === 0) {
                     var pickUp = new Pickup(x * spriteSize, y * spriteSize);
                     this.pickups.push(pickUp);
                 }
@@ -154,7 +185,7 @@ class Game {
         var oldPickUp = this.pickups[randomPickup];
         var special = new Special(oldPickUp.x, oldPickUp.y, this);
         this.pickups.splice(randomPickup, 1, special);
-        
+
         this.entities = this.entities.concat(this.pickups);
     }
 
@@ -183,29 +214,29 @@ class Game {
 
         document.getElementById("score-board").innerHTML = this.score;
     }
-    
+
     drawBackGround() {
         context.fillRect(0, 0, screenX, screenY)
     }
 
     handleKeyInput() {
-        if(rightPressed) {
+        if (rightPressed) {
             this.player.nextDirection = DirectionEnum.RIGHT;
         }
-        else if(leftPressed) {
+        else if (leftPressed) {
             this.player.nextDirection = DirectionEnum.LEFT;
         }
-        else if(downPressed) {
+        else if (downPressed) {
             this.player.nextDirection = DirectionEnum.DOWN;
         }
-        else if(upPressed) {
+        else if (upPressed) {
             this.player.nextDirection = DirectionEnum.UP;
         }
     }
-    
+
 }
 class Tile {
-    constructor(tilesetX, tilesetY){
+    constructor(tilesetX, tilesetY) {
         this.tilesetX = tilesetX;
         this.tilesetY = tilesetY;
     }
@@ -222,37 +253,37 @@ class Map {
 
         var x;
         var y;
-        for (x = 0; x < this.tileSheet.width / this.tileSize; x++){
-            for (y = 0; y < this.tileSheet.height/ this.tileSize; y++){
-                this.tiles.push(new Tile(x,y))
+        for (x = 0; x < this.tileSheet.width / this.tileSize; x++) {
+            for (y = 0; y < this.tileSheet.height / this.tileSize; y++) {
+                this.tiles.push(new Tile(x, y))
             }
         }
     }
 
-    draw(){
+    draw() {
 
         context.drawImage(this.tileSheet, 200, 300);
 
         var x;
         var y;
-        for (y = 0; y < this.levelData.length; y++){
-            for (x = 0; x < this.levelData[y].length; x++){
-                this.drawTile(x, y, this.tiles[this.levelData[y][x]] )
+        for (y = 0; y < this.levelData.length; y++) {
+            for (x = 0; x < this.levelData[y].length; x++) {
+                this.drawTile(x, y, this.tiles[this.levelData[y][x]])
             }
         }
     }
 
-    drawTile(x, y, tile){ 
+    drawTile(x, y, tile) {
         context.drawImage(
-          this.tileSheet,
-          tile.tilesetX * this.tileSize, tile.tilesetY * this.tileSize, this.tileSize, this.tileSize, // source coords
-          Math.floor(x * this.tileSize), Math.floor(y * this.tileSize), this.tileSize, this.tileSize // destination coords
+            this.tileSheet,
+            tile.tilesetX * this.tileSize, tile.tilesetY * this.tileSize, this.tileSize, this.tileSize, // source coords
+            Math.floor(x * this.tileSize), Math.floor(y * this.tileSize), this.tileSize, this.tileSize // destination coords
         );
-      }
+    }
 }
 
 class Sprite {
-    constructor(x, y, currentGraphic){
+    constructor(x, y, currentGraphic) {
         this.currentGraphic = currentGraphic;
         this.sprintSize = spriteSize
         this.alive = true;
@@ -260,18 +291,17 @@ class Sprite {
         this.y = y;
     }
 
-    update(map) {}
+    update(map) { }
 
     draw() {
-        if(this.alive)
-        {
+        if (this.alive) {
             context.drawImage(this.currentGraphic, this.x, this.y);
         }
     }
 }
 
 class Pickup extends Sprite {
-    constructor(x, y, currentGraphic){
+    constructor(x, y, currentGraphic) {
         super(x, y, currentGraphic || pickupImage)
     }
 
@@ -281,21 +311,21 @@ class Pickup extends Sprite {
 }
 
 class Special extends Pickup {
-    constructor(x, y, game){
+    constructor(x, y, game) {
         var image = new Image();
         image.src = game.level.specialImage;
-        
+
         super(x, y, image);
         this.game = game;
     }
 
-    getScore(){
+    getScore() {
         return this.game.levelNumber * 100;
     }
 }
 
 class Actor extends Sprite {
-    constructor(x, y, speed, currentGraphic, startDirection){
+    constructor(x, y, speed, currentGraphic, startDirection) {
         super(x, y, currentGraphic);
         this.xvel = 0;
         this.yvel = 0
@@ -306,13 +336,13 @@ class Actor extends Sprite {
 
     update(map) {
 
-        if (this.canChangeDirection(map)){
+        if (this.canChangeDirection(map)) {
             this.currentDirection = this.nextDirection;
-        }else{
+        } else {
             this.nextDirection = this.currentDirection;
         }
 
-        switch(this.currentDirection) {
+        switch (this.currentDirection) {
             case DirectionEnum.UP:
                 this.yvel = this.yvel -= this.speed;
                 break;
@@ -335,19 +365,19 @@ class Actor extends Sprite {
         this.xvel = 0;
         this.yvel = 0;
 
-        if (this.x < 0) {this.x = 0}
-        if (this.y < 0) {this.y = 0}
-        if (this.x + spriteSize > screenX) {this.x = screenX - spriteSize}
-        if (this.y + spriteSize > screenY) {this.y = screenY - spriteSize}
+        if (this.x < 0) { this.x = 0 }
+        if (this.y < 0) { this.y = 0 }
+        if (this.x + spriteSize > screenX) { this.x = screenX - spriteSize }
+        if (this.y + spriteSize > screenY) { this.y = screenY - spriteSize }
     }
 
-    canChangeDirection(map){
-        if (this.x % map.tileSize == 0 && this.y % map.tileSize == 0 ){
+    canChangeDirection(map) {
+        if (this.x % map.tileSize == 0 && this.y % map.tileSize == 0) {
 
             var entityMapX = Math.floor(this.x / map.tileSize);
             var entityMapY = Math.floor(this.y / map.tileSize);
 
-            switch(this.currentDirection) {
+            switch (this.currentDirection) {
                 case DirectionEnum.UP:
                     if (this.nextDirection == DirectionEnum.DOWN) {
                         return false;
@@ -383,49 +413,49 @@ class Actor extends Sprite {
         return false;
     }
 
-    checkXAxisCanMove(map, entityMapX, entityMapY){
-        switch(this.nextDirection){
+    checkXAxisCanMove(map, entityMapX, entityMapY) {
+        switch (this.nextDirection) {
             case DirectionEnum.LEFT:
-                if (map.levelData[entityMapY][entityMapX-1] == 0){
+                if (map.levelData[entityMapY][entityMapX - 1] == 0) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             case DirectionEnum.RIGHT:
-                if (map.levelData[entityMapY][entityMapX+1] == 0){
+                if (map.levelData[entityMapY][entityMapX + 1] == 0) {
                     return true;
-                }else{
-                    return false;
-                }
-        }   
-    }
-
-    checkYAxisCanMove(map, entityMapX, entityMapY){
-        switch(this.nextDirection){
-            case DirectionEnum.UP:
-                if (map.levelData[entityMapY-1][entityMapX] == 0){
-                    return true;
-                }else{
-                    return false;
-                }
-            case DirectionEnum.DOWN:
-                if (map.levelData[entityMapY+1][entityMapX] == 0){
-                    return true;
-                }else{
+                } else {
                     return false;
                 }
         }
     }
 
-    collideLevel(map){
+    checkYAxisCanMove(map, entityMapX, entityMapY) {
+        switch (this.nextDirection) {
+            case DirectionEnum.UP:
+                if (map.levelData[entityMapY - 1][entityMapX] == 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            case DirectionEnum.DOWN:
+                if (map.levelData[entityMapY + 1][entityMapX] == 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+        }
+    }
+
+    collideLevel(map) {
         var x;
         var y;
-        for (y = 0; y < map.levelData.length; y++){
-            for (x = 0; x < map.levelData[y].length; x++){
-                if (map.levelData[y][x] != 0 && 
-                    this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize)){
+        for (y = 0; y < map.levelData.length; y++) {
+            for (x = 0; x < map.levelData[y].length; x++) {
+                if (map.levelData[y][x] != 0 &&
+                    this.didCollideRect(this.x + this.xvel, this.y + this.yvel, this.sprintSize, this.sprintSize, x * map.tileSize, y * map.tileSize, map.tileSize, map.tileSize)) {
                     this.currentDirection = DirectionEnum.STOPPED;
-                    
+
                     if (this.xvel > 0) {
                         this.xvel = this.x - (x * map.tileSize - spriteSize);
                     }
@@ -444,11 +474,11 @@ class Actor extends Sprite {
         }
     }
 
-    didCollideRect(sx,sy,sw,sh,tx,ty,tw,th){
-        if(tx < sx + sw && 
-            tx + tw > sx && 
-            ty < sy + sh && 
-            ty + th > sy ){
+    didCollideRect(sx, sy, sw, sh, tx, ty, tw, th) {
+        if (tx < sx + sw &&
+            tx + tw > sx &&
+            ty < sy + sh &&
+            ty + th > sy) {
             return true
         }
         return false;
@@ -456,19 +486,24 @@ class Actor extends Sprite {
 }
 
 class Player extends Actor {
-    update(map){
+    update(map) {
         Actor.prototype.update.call(this, map);
 
-        this.collideWithPickup();        
+        this.collideWithPickup();
     }
 
-    collideWithPickup () {
-        for(var i = 0; i < game.pickups.length; i++){
+    collideWithPickup() {
+        for (var i = 0; i < game.pickups.length; i++) {
             var pickup = game.pickups[i];
 
-            if(pickup.alive && this.x == pickup.x && this.y == pickup.y){
+            if (pickup.alive && this.x == pickup.x && this.y == pickup.y) {
                 game.score = game.score + pickup.getScore();
                 game.pickups[i].alive = false;
+                game.pickupsRemaining++;
+            }
+
+            if(game.pickupsRemaining === 0){
+                game.currentState = GameStateEnum.END_GAME;
             }
         }
     }
@@ -476,63 +511,63 @@ class Player extends Actor {
 
 class Enemy extends Actor {
 
-    update(map, player){
+    update(map, player) {
 
-        if (this.currentDirection == DirectionEnum.STOPPED){
+        if (this.currentDirection == DirectionEnum.STOPPED) {
             this.nextDirection = Math.random() * 3 + 1;
         }
-        
+
         var xDiff = this.x - player.x;
         var yDiff = this.y - player.y;
 
         if (Math.abs(xDiff) > Math.abs(yDiff)) {
-            if (xDiff > 0){
-                if (this.currentDirection == DirectionEnum.RIGHT){
-                    if (yDiff > 0){
+            if (xDiff > 0) {
+                if (this.currentDirection == DirectionEnum.RIGHT) {
+                    if (yDiff > 0) {
                         this.nextDirection = DirectionEnum.UP;
-                    }else{
+                    } else {
                         this.nextDirection = DirectionEnum.DOWN;
                     }
-                }else{
+                } else {
                     this.nextDirection = DirectionEnum.LEFT;
                 }
-            }else{
-                if (this.currentDirection == DirectionEnum.LEFT){
-                    if (yDiff > 0){
+            } else {
+                if (this.currentDirection == DirectionEnum.LEFT) {
+                    if (yDiff > 0) {
                         this.nextDirection = DirectionEnum.UP;
-                    }else{
+                    } else {
                         this.nextDirection = DirectionEnum.DOWN;
                     }
-                }else{
+                } else {
                     this.nextDirection = DirectionEnum.RIGHT;
                 }
             }
-        }else{
-            if (yDiff > 0){
-                if (this.currentDirection == DirectionEnum.DOWN){
-                    if (xDiff > 0){
+        } else {
+            if (yDiff > 0) {
+                if (this.currentDirection == DirectionEnum.DOWN) {
+                    if (xDiff > 0) {
                         this.nextDirection = DirectionEnum.LEFT;
-                    }else{
+                    } else {
                         this.nextDirection = DirectionEnum.RIGHT;
                     }
-                }else{
+                } else {
                     this.nextDirection = DirectionEnum.UP;
                 }
-            }else{
-                if (this.currentDirection == DirectionEnum.UP){
-                    if (xDiff > 0){
+            } else {
+                if (this.currentDirection == DirectionEnum.UP) {
+                    if (xDiff > 0) {
                         this.nextDirection = DirectionEnum.LEFT;
-                    }else{
+                    } else {
                         this.nextDirection = DirectionEnum.RIGHT;
                     }
-                }else{
+                } else {
                     this.nextDirection = DirectionEnum.DOWN;
                 }
             }
         }
 
-        if(!this.canMoveDirection(map, this.nextDirection)){
-            var notAttemtedDirections = [0,1,2,3];
+        if (!this.canMoveDirection(map, this.nextDirection)) {
+            var notAttemtedDirections = [0, 1, 2, 3];
             var randomDirection = this.tryRandomDirection(notAttemtedDirections);
             this.nextDirection = randomDirection;
         }
@@ -540,50 +575,50 @@ class Enemy extends Actor {
         super.update(map);
     }
 
-    tryRandomDirection(notAttemtedDirections){
+    tryRandomDirection(notAttemtedDirections) {
 
         var randomIndex = Math.floor(Math.random() * notAttemtedDirections.length);
         var randomDirection = notAttemtedDirections[randomIndex];
-        if (this.canMoveDirection){
+        if (this.canMoveDirection) {
             return randomDirection
-        }else{
+        } else {
             notAttemtedDirections.pop(randomIndex);
             return this.tryRandomDirection(notAttemtedDirections)
         }
 
     }
 
-    canMoveDirection(map, direction){
+    canMoveDirection(map, direction) {
 
         var entityMapX = Math.floor(this.x / map.tileSize);
         var entityMapY = Math.floor(this.y / map.tileSize);
 
-        switch(direction){
+        switch (direction) {
             case DirectionEnum.LEFT:
-                if (map.levelData[entityMapY][entityMapX-1] == 0){
+                if (map.levelData[entityMapY][entityMapX - 1] == 0) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             case DirectionEnum.RIGHT:
-                if (map.levelData[entityMapY][entityMapX+1] == 0){
+                if (map.levelData[entityMapY][entityMapX + 1] == 0) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             case DirectionEnum.UP:
-                if (map.levelData[entityMapY-1][entityMapX] == 0){
+                if (map.levelData[entityMapY - 1][entityMapX] == 0) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             case DirectionEnum.DOWN:
-                if (map.levelData[entityMapY+1][entityMapX] == 0){
+                if (map.levelData[entityMapY + 1][entityMapX] == 0) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
-        }   
+        }
     }
 
 }
