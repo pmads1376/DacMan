@@ -90,6 +90,11 @@ function keyUpHandler(event) {
     }
 }
 
+function startNewGame(){
+    currentLevel = 1;
+    loadNewGame();
+}
+
 function loadNewGame() {
     game = new Game(currentLevel);
 }
