@@ -18,7 +18,7 @@ const levels = {
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]],
         specialImage: "images/special0.png",
         startingCoords: {x: 1, y:1},
-        ghostCoords: [{x:7, y:9},{x:16, y:12}]
+        ghosts: [{x:7, y:9, img:"images/tornado0.png" },{x:16, y:12, img: "images/fire0.png"}],
     },
     2: {
         map: 
@@ -41,6 +41,6 @@ const levels = {
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]],
         specialImage: "images/special1.png",
         startingCoords: {x: 1, y: 1},
-        ghostCoords: [{x:9, y:12},{x:15, y:12}]
+        ghosts: [{x:9, y:12, img:"images/flood0.png" },{x:15, y:12, img:"images/weather0.png" }]
     }
 };

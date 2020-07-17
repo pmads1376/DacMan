@@ -17,15 +17,14 @@ class Game {
         this.player = new Player(this.level.startingCoords.x * spriteSize, this.level.startingCoords.y * spriteSize, 2, playerImage, DirectionEnum.DOWN);
         this.map = new Map(tileSheet, this.level.map);
 
-        this.level.ghostCoords.forEach((ghostCoord) =>{
-            var ghost = new Enemy(ghostCoord.x * spriteSize, ghostCoord.y * spriteSize, 2, enemyImage, Math.floor(Math.random() * 3));
+        this.level.ghosts.forEach((ghostInfo) =>{
+            var image = new Image();
+            image.src = ghostInfo.img;
+            var ghost = new Enemy(ghostInfo.x * spriteSize, ghostInfo.y * spriteSize, 2, image, Math.floor(Math.random() * 3));
             this.enemies.push(ghost);
         })
   
         this.initializePickups();
-        // var pickup =new Pickup(32, 64);
-        // this.pickups.push(pickup);
-        // this.entities.push(pickup)
         this.pickupsRemaining = this.pickups.length;
 
         this.entities.push(this.player);
@@ -115,8 +114,8 @@ class Game {
         this.player.alive = true;
 
         this.enemies.forEach((enemy, index) => {
-            enemy.x = this.level.ghostCoords[index].x * spriteSize;
-            enemy.y = this.level.ghostCoords[index].y * spriteSize;
+            enemy.x = this.level.ghosts[index].x * spriteSize;
+            enemy.y = this.level.ghosts[index].y * spriteSize;
         })
     }
 
