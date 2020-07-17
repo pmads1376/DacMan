@@ -69,8 +69,10 @@ class Game {
             enemy.update(this.map, this.player);
         });
 
-        if (!this.player.alive){
+        if (!this.player.alive && this.player.lives > 0){
             this.currentState = GameStateEnum.PLAYER_DEATH;
+        }else if (!this.player.alive && this.player.lives <= 0) {
+            this.currentState = GameStateEnum.GAME_OVER;
         }
     }
 
@@ -112,6 +114,7 @@ class Game {
         this.player.x = this.level.startingCoords.x * spriteSize;;
         this.player.y = this.level.startingCoords.y * spriteSize;;
         this.player.alive = true;
+        this.player.lives -= 1;
 
         this.enemies.forEach((enemy, index) => {
             enemy.x = this.level.ghosts[index].x * spriteSize;

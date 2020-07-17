@@ -1,6 +1,11 @@
 class Player extends Actor {
+    constructor(x, y, speed, currentGraphic, startDirection){
+        super(x, y, speed, currentGraphic, startDirection);
+
+        this.lives = 3;
+    }
+
     update(map) {
-        
         if (this.alive){
             this.collideWithPickup();
             this.collideWithEnemy();

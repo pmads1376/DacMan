@@ -1,23 +1,89 @@
+const EnemyStateEnum = {
+    "RANDOM": 0,
+    "FOLLOW": 1,
+    "COOLDOWN": 2
+}
+Object.freeze(DirectionEnum)
 
 class Enemy extends Actor {
 
     constructor(x, y, speed, currentGraphic, startDirection){
         super(x, y, speed, currentGraphic, startDirection);
         this.isFrightened = false;
-        this.sightRange = 160
+        this.sightRange = 160;
+        this.startFollowTime = null;
+        this.lastFollowTime = null;
+        this.isFollowing = false;
+        this.maxFollowTime = 5;
+        this.isFollowCooldown = false
+        this.maxFollowTimeCooldown = 10;
+
+        this.currentState = EnemyStateEnum.RANDOM;
     }
 
     update(map, player) {
 
         if (this.x % this.spriteSize == 0 && this.y % this.spriteSize == 0){
-            if (Math.abs(this.distanceBetweenPoints(this.x, this.y, player.x, player.y)) < this.sightRange){
-                this.followPlayer(map, player)
-            }else{
-                this.moveRandomDirection()
+
+            this.updateState()
+
+            switch(this.currentState){
+                case EnemyStateEnum.FOLLOW:
+                    this.followPlayer(map, player)
+                    break;
+                case EnemyStateEnum.COOLDOWN:
+                case EnemyStateEnum.RANDOM:
+                    this.moveRandomDirection()
+                    break;
             }
         }
 
         super.update(map);
+    }
+
+    isPlayerInRange(){
+        return Math.abs(this.distanceBetweenPoints(this.x, this.y, player.x, player.y)) < this.sightRange
+    }
+
+    updateState(){
+        switch(this.currentState){
+            case EnemyStateEnum.FOLLOW:
+                this.updateFollowingState();
+                break;
+            case EnemyStateEnum.COOLDOWN:
+                this.updateFollowCooldownState();
+                break
+            case EnemyStateEnum.RANDOM:
+                if (this.isPlayerInRange){
+                    this.currentState = EnemyStateEnum.FOLLOW;
+                }
+                break;
+        }
+    }
+
+    updateFollowingState(){
+        if (this.startFollowTime){
+            var now = new Date();
+            var secondsDiff = (now - this.startFollowTime) / 1000;
+            if(secondsDiff > this.maxFollowTime){
+                this.currentState = EnemyStateEnum.COOLDOWN;
+                this.lastFollowTime = now;
+            }
+        }
+    }
+
+    updateFollowCooldownState(){
+        if (this.lastFollowTime){
+            var now = new Date();
+            var secondsDiff = (now - this.lastFollowTime) / 1000;
+            if(secondsDiff > this.maxFollowTimeCooldown){
+                if (this.isPlayerInRange()){
+                    this.currentState = EnemyStateEnum.FOLLOW;
+                }else{
+                    this.currentState = EnemyStateEnum.RANDOM
+                }
+            }
+        }
     }
 
     distanceBetweenPoints(x1, y1, x2, y2){
