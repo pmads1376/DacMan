@@ -19,8 +19,13 @@ section, div.section-header {
     margin: 0 auto;
 }
 
-section {
-    margin: 0 auto;
+#score-list {
+    width: 75%;
+    margin: 50px auto;
+}
+
+ol li {
+    margin-top: 15px;
 }
 
 #canvas-container {

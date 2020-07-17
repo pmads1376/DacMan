@@ -9,6 +9,7 @@ let context;
 let game;
 let currentLevel = 1;
 let itemCollection = [];
+let scores = [];
 
 var rightPressed = false;
 var leftPressed = false;
@@ -60,14 +61,14 @@ function keyDownHandler(event) {
 }
 
 function keyUpHandler(event) {
-    switch(game.currentState){
+    switch (game.currentState) {
         case GameStateEnum.LOAD_LEVEL:
             startGame();
             break;
         case GameStateEnum.LEVEL_COMPLETE:
             let nextLevel = currentLevel + 1;
 
-            if(levels[nextLevel]){
+            if (levels[nextLevel]) {
                 loadNewGame();
                 startGame();
             } else {
@@ -91,10 +92,11 @@ function keyUpHandler(event) {
     }
 }
 
-function startNewGame(){
+function startNewGame() {
     currentLevel = 1;
     itemCollection = [];
     document.getElementById("item-collection").innerHTML = "";
+    scores.push(game.score);
 
     loadNewGame();
 }
@@ -138,6 +140,11 @@ function showScore() {
         section.style.display = "none";
     };
 
+    var scoresHtml = "No Scores";
+    if (scores.length != 0) {
+        var scoresHtml = scores.sort((a,b) => b-a).map(score => "<li>" + score + "</li>").reduce((acc, li) => acc + li);
+    }
+    document.getElementById("score-list").innerHTML = scoresHtml;
     document.getElementById("score-section").style.display = "block";
 }
 
@@ -176,7 +183,7 @@ const GameStateEnum = {
         putTextOnOverlay("Game Over");
     },
     GAME_COMPLETE: function (game) {
-        putTextOnOverlay("Game Completed!<br>Score " + game.score + "!" );
+        putTextOnOverlay("Game Completed!<br>Score " + game.score + "!");
     }
 }
 
@@ -548,7 +555,7 @@ class Player extends Actor {
                 game.pickups[i].alive = false;
                 game.pickupsRemaining--;
 
-                if(pickup instanceof Special){
+                if (pickup instanceof Special) {
                     itemCollection.push(pickup.currentGraphic);
                     let html = itemCollection.map(item => {
                         return '<img src="' + item.src + '">'
