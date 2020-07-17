@@ -22,23 +22,6 @@ const DirectionEnum = {
 }
 Object.freeze(DirectionEnum)
 
-
-const TileEnum = {
-    "EMPTY": 0,
-    "WALL": 1,
-    "PICKUP": 2
-}
-Object.freeze(TileEnum);
-
-var playerImage = new Image();
-playerImage.src = "images/player.png";
-
-var tileSheet = new Image();
-tileSheet.src = "images/tilesheet.png"
-
-var enemyImage = new Image();
-enemyImage.src = "images/ghost.png"
-
 window.onload = init;
 
 function init() {
@@ -54,7 +37,7 @@ function init() {
 }
 
 function mainLoop() {
-    if (!game.isPaused) {
+    if (!game.isPaused && !game.isGameFinished()) {
         game.update();
         game.draw();
     }
@@ -93,7 +76,7 @@ function keyUpHandler(event) {
 }
 
 function startNewGame() {
-    game = new Game();
+    game = new Game(1);
 }
 
 function showBoard() {
@@ -127,15 +110,52 @@ function toggleGamePause() {
 }
 
 class Game {
-    constructor(){
+    constructor(levelNumber){
+        this.score = 0;
         this.entities = [];
         this.enemies = [];
-        this.player = new Player(32,32, 2, playerImage, DirectionEnum.DOWN);
-        this.map = new Map(tileSheet, level_one);
+        this.levelNumber = levelNumber;
+        this.level = levels[levelNumber];
+
+        this.player = new Player(this.level.startingCoords[0] * spriteSize, this.level.startingCoords[0] *spriteSize, 2, playerImage, DirectionEnum.DOWN);
+        this.map = new Map(tileSheet, this.level.map);
         var ghost = new Enemy(128, 32, 2, enemyImage, DirectionEnum.RIGHT);
+
+        this.pickups = [];
+        this.initializePickups();
+        this.pickupsRemaining = this.pickups.length;
 
         this.entities.push(this.player);
         this.enemies.push(ghost);
+    }
+
+    isGameFinished() {
+        return this.pickupsRemaining == 0;
+    }
+
+    initializePickups(){
+        
+        var x;
+        var y;
+        for (y = 0; y < this.map.levelData.length; y++){
+            for (x = 0; x < this.map.levelData[y].length; x++){
+                if(y == this.level.startingCoords[1] && x == this.level.startingCoords[0]){
+                    continue;
+                }
+
+                if(this.map.levelData[y][x] === 0){
+                    var pickUp = new Pickup(x * spriteSize, y * spriteSize);
+                    this.pickups.push(pickUp);
+                }
+            }
+        }
+
+        var randomPickup = Math.floor(Math.random() * this.pickups.length);
+        var oldPickUp = this.pickups[randomPickup];
+        var special = new Special(oldPickUp.x, oldPickUp.y, this);
+        this.pickups.splice(randomPickup, 1, special);
+        
+        this.entities = this.entities.concat(this.pickups);
     }
 
     update() {
@@ -160,6 +180,8 @@ class Game {
         this.enemies.forEach(enemy => {
             enemy.draw(this.map);
         });
+
+        document.getElementById("score-board").innerHTML = this.score;
     }
     
     drawBackGround() {
@@ -230,21 +252,56 @@ class Map {
 }
 
 class Sprite {
-    constructor(x, y, speed, currentGraphic, startDirection){
+    constructor(x, y, currentGraphic){
         this.currentGraphic = currentGraphic;
         this.sprintSize = spriteSize
-        this.currentDirection = startDirection;
-        this.nextDirection = this.currentDirection;
         this.alive = true;
         this.x = x;
         this.y = y;
+    }
+
+    update(map) {}
+
+    draw() {
+        if(this.alive)
+        {
+            context.drawImage(this.currentGraphic, this.x, this.y);
+        }
+    }
+}
+
+class Pickup extends Sprite {
+    constructor(x, y, currentGraphic){
+        super(x, y, currentGraphic || pickupImage)
+    }
+
+    getScore() {
+        return 10;
+    }
+}
+
+class Special extends Pickup {
+    constructor(x, y, game){
+        var image = new Image();
+        image.src = game.level.specialImage;
+        
+        super(x, y, image);
+        this.game = game;
+    }
+
+    getScore(){
+        return this.game.levelNumber * 100;
+    }
+}
+
+class Actor extends Sprite {
+    constructor(x, y, speed, currentGraphic, startDirection){
+        super(x, y, currentGraphic);
         this.xvel = 0;
         this.yvel = 0
         this.speed = speed;
-    }
-
-    draw() {
-        context.drawImage(this.currentGraphic, this.x, this.y);
+        this.currentDirection = startDirection;
+        this.nextDirection = this.currentDirection;
     }
 
     update(map) {
@@ -396,13 +453,28 @@ class Sprite {
         }
         return false;
     }
-
 }
 
-class Player extends Sprite {
+class Player extends Actor {
+    update(map){
+        Actor.prototype.update.call(this, map);
+
+        this.collideWithPickup();        
+    }
+
+    collideWithPickup () {
+        for(var i = 0; i < game.pickups.length; i++){
+            var pickup = game.pickups[i];
+
+            if(pickup.alive && this.x == pickup.x && this.y == pickup.y){
+                game.score = game.score + pickup.getScore();
+                game.pickups[i].alive = false;
+            }
+        }
+    }
 }
 
-class Enemy extends Sprite {
+class Enemy extends Actor {
 
     update(map, player){
 
