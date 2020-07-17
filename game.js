@@ -14,10 +14,14 @@ class Game {
         this.levelNumber = levelNumber;
         this.level = levels[levelNumber];
 
-        this.player = new Player(this.level.startingCoords[0] * spriteSize, this.level.startingCoords[0] * spriteSize, 2, playerImage, DirectionEnum.DOWN);
+        this.player = new Player(this.level.startingCoords.x * spriteSize, this.level.startingCoords.y * spriteSize, 2, playerImage, DirectionEnum.DOWN);
         this.map = new Map(tileSheet, this.level.map);
-        var ghost = new Enemy(512, 384, 2, enemyImage, DirectionEnum.RIGHT);
-        
+
+        this.level.ghostCoords.forEach((ghostCoord) =>{
+            var ghost = new Enemy(ghostCoord.x * spriteSize, ghostCoord.y * spriteSize, 2, enemyImage, Math.floor(Math.random() * 3));
+            this.enemies.push(ghost);
+        })
+  
         this.initializePickups();
         // var pickup =new Pickup(32, 64);
         // this.pickups.push(pickup);
@@ -25,7 +29,6 @@ class Game {
         this.pickupsRemaining = this.pickups.length;
 
         this.entities.push(this.player);
-        this.enemies.push(ghost);
     }
 
     processState() {
@@ -107,13 +110,13 @@ class Game {
     }
 
     resetPlayer() {
-        this.player.x = 32;
-        this.player.y = 32;
+        this.player.x = this.level.startingCoords.x * spriteSize;;
+        this.player.y = this.level.startingCoords.y * spriteSize;;
         this.player.alive = true;
 
-        this.enemies.forEach((enemy) => {
-            enemy.x = 512;
-            enemy.y = 384;
+        this.enemies.forEach((enemy, index) => {
+            enemy.x = this.level.ghostCoords[index].x * spriteSize;
+            enemy.y = this.level.ghostCoords[index].y * spriteSize;
         })
     }
 
