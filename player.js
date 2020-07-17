@@ -26,6 +26,8 @@ class Player extends Actor {
                 game.pickups[i].alive = false;
                 game.pickupsRemaining--;
 
+                eatSound.play();
+
                 if (pickup instanceof Special) {
                     itemCollection.push(pickup.currentGraphic);
                     let html = itemCollection.map(item => {

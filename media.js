@@ -17,3 +17,5 @@ var special1 = new Image();
 special1.src = "images/special1.png";
 
 var backgroundMusic = new Audio("music/game_music.wav");
+
+var eatSound = new Audio("music/beep.mp3");
