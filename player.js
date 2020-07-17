@@ -18,6 +18,7 @@ class Player extends Actor {
         game.enemies.forEach((enemy)=>{
             if (!enemy.isFrightened && this.didCollideRect(this.x, this.y, this.spriteSize, this.spriteSize, enemy.x, enemy.y, enemy.spriteSize, enemy.spriteSize)){
                 this.alive = false;
+                dieSound.play();
             }
         });
     }
